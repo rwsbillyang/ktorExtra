@@ -23,7 +23,7 @@ fun JsonBuilder.apiJsonBuilder(){
     ignoreUnknownKeys = true
     //isLenient = true
     allowSpecialFloatingPointValues = true
-    useArrayPolymorphism = true
+    useArrayPolymorphism = false
 //    serialModule = serializersModuleOf(mapOf(
 //        ObjectId::class to ObjectIdStringSerializer,
 //        LocalDateTime::class to LocalDateTimeStringSerializer

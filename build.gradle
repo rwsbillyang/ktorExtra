@@ -2,6 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
     id 'maven-publish'
+    id 'java-library' //apply plugin: 'java-library'
 }
 
 group 'com.github.rwsbillyang'
@@ -20,7 +21,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
-    implementation group: 'commons-codec', name: 'commons-codec', version: '1.13'
+    implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
 
     // https://mvnrepository.com/artifact/org.mongodb/bson
     implementation group: 'org.mongodb', name: 'bson', version: '4.1.0'
@@ -64,10 +65,11 @@ compileTestKotlin {
 publishing {
     publications {
         maven(MavenPublication) {
-            artifact "./build/libs/${rootProject.name}-${version}.jar"
-            groupId group
-            artifactId "${rootProject.name}"
-            version version
+//            artifact "./build/libs/${rootProject.name}-${version}.jar"
+//            groupId group
+//            artifactId "${rootProject.name}"
+//            version version
+              from components.java
         }
     }
 }

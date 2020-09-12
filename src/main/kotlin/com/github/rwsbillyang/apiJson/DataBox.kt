@@ -4,6 +4,25 @@ package com.github.rwsbillyang.apiJson
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
+object Code{
+    const val OK = "OK"
+    const val KO = "KO"
+    const val NeedLogin = "NeedLogin"
+}
+/**
+ * Custom serializers for a generic type
+ * https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/serializers.md#custom-serializers-for-a-generic-type
+ * */
+@Serializable
+data class ResponseBox<T>(var code: String,
+                   var msg: String? = null, val data: T? = null)
+{
+    companion object{
+        fun <T> ok(data: T?) = ResponseBox(Code.OK, data = data)
+        fun ko(msg: String) = ResponseBox<Nothing>(Code.KO, msg)
+        fun needLogin(msg: String) = ResponseBox<Nothing>(Code.NeedLogin, msg)
+    }
+}
 
 /**
  * 抽象基类，包含了code和msg， API返回结果数据结构
@@ -13,14 +32,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 abstract class Box(
     var code: String,
-    var msg: String?
+    var msg: String? = null
 ){
-    constructor(): this(OK, null)
-    companion object{
-        const val OK = "OK"
-        const val KO = "KO"
-        const val NeedLogin = "NeedLogin"
-    }
+    constructor(): this(Code.OK)
 }
 
 /**
@@ -31,14 +45,14 @@ abstract class Box(
  * @param data 返回的负载数据 response payload
  * */
 @Serializable
-data class DataBox(@Contextual val data: Any?) : Box(OK,null)
+data class DataBox(@Contextual val data: Any?) : Box(Code.OK)
 {
     constructor(): this(null)
 
     companion object{
         fun ok(data: Any?) = DataBox(data)
-        fun ko(msg: String) = DataBox(null).apply { code = KO }
-        fun needLogin(msg: String) = DataBox(null).apply { code = NeedLogin }
+        fun ko(msg: String) = DataBox(null).apply { code = Code.KO }
+        fun needLogin(msg: String) = DataBox(null).apply { code = Code.NeedLogin }
     }
 }
 
@@ -60,7 +74,7 @@ abstract class UmiBox(
     var type: Int?,
     var tId: String?,
     var host: String?
-): Box(OK, null)
+): Box(Code.OK)
 {
     constructor(): this(null,null, null)
     companion object{
@@ -90,8 +104,8 @@ data class UmiDataBox(@Contextual val data: Any?)
 
     companion object{
         fun ok(data: Any?) = UmiDataBox(data)
-        fun ko(msg: String, type: Int = WARN_MESSAGE) = UmiDataBox(null).apply { code = KO }
-        fun needLogin(msg: String, type: Int = REDIRECT) = UmiDataBox(null).apply { code = NeedLogin }
+        fun ko(msg: String, type: Int = WARN_MESSAGE) = UmiDataBox(null).apply { code = Code.KO }
+        fun needLogin(msg: String, type: Int = REDIRECT) = UmiDataBox(null).apply { code = Code.NeedLogin }
     }
 }
 
