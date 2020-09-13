@@ -30,7 +30,7 @@ data class ResponseBox<T>(var code: String,
  * @param msg 错误信息，
  * */
 @Serializable
-abstract class Box(
+open class Box(
     var code: String,
     var msg: String? = null
 ){
@@ -70,13 +70,16 @@ data class DataBox(@Contextual val data: Any?) : Box(Code.OK)
  * https://umijs.org/plugins/plugin-request
  * */
 @Serializable
-abstract class UmiBox(
-    var type: Int?,
-    var tId: String?,
-    var host: String?
-): Box(Code.OK)
+open class UmiBox(
+    var code: String,
+    var msg: String? = null,
+    var type: Int? = null,
+    var tId: String? = null,
+    var host: String? = null
+)
 {
-    constructor(): this(null,null, null)
+    constructor(): this(Code.OK)
+
     companion object{
         const val SILENT = 0 // 不提示错误
         const val WARN_MESSAGE = 1 // 警告信息提示
@@ -98,7 +101,7 @@ abstract class UmiBox(
  * */
 @Serializable
 data class UmiDataBox(@Contextual val data: Any?)
-    : UmiBox( null,null, null)
+    : UmiBox( Code.OK)
 {
     constructor(): this(null)
 
