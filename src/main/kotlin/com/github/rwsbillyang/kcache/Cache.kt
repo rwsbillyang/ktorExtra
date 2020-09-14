@@ -19,6 +19,7 @@
 package com.github.rwsbillyang.kcache
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import org.koin.core.KoinComponent
 import java.util.concurrent.TimeUnit
 
 
@@ -60,7 +61,7 @@ enum class CacheStrategy{
 
 }
 
-interface CacheInterface
+interface ICache
 {
     // cacheName，缓存的名字
     var name: String?
@@ -82,7 +83,7 @@ interface CacheInterface
  * */
 open class CaffeineCache(val maxEntries:Long = 10000L,
                     val expireAfterWriteSeconds:Long = 600L,
-                    val expireAfterAccessSeconds:Long = 600L): CacheInterface{
+                    val expireAfterAccessSeconds:Long = 600L): ICache, KoinComponent {
     override var name: String?
         get() =  name?:"caffeine"
         set(value) {name = value}
@@ -113,7 +114,7 @@ open class CaffeineCache(val maxEntries:Long = 10000L,
 
 }
 
-class RedisCache: CacheInterface{
+class RedisCache: ICache, KoinComponent{
     override var name: String?
         get() =  name?:"redis"
         set(value) {name = value}

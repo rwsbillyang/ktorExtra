@@ -19,6 +19,7 @@
 package com.github.rwsbillyang.kcache
 
 
+import org.koin.core.KoinComponent
 import org.slf4j.LoggerFactory
 
 /**
@@ -26,8 +27,8 @@ import org.slf4j.LoggerFactory
  * 可以指定三个属性：key、call,condition
  * 通常用于find方法
  * */
-inline fun <reified T: Any> Cacheable(init: CacheService.() -> Unit): T? {
-    val cacheService = CacheService()
+inline fun <reified T: Any> Cacheable(init: CacheServiceDsl.() -> Unit): T? {
+    val cacheService = CacheServiceDsl()
     cacheService.init()
     val data = cacheService.doCacheable()
     return if(data == null)  return null else data as? T
@@ -38,8 +39,8 @@ inline fun <reified T: Any> Cacheable(init: CacheService.() -> Unit): T? {
  *
  * 通常用于save方法
  * */
-inline fun <reified T: Any> CachePut(init: CacheService.() -> Unit): T?{
-    val cacheService = CacheService()
+inline fun <reified T: Any> CachePut(init: CacheServiceDsl.() -> Unit): T?{
+    val cacheService = CacheServiceDsl()
     cacheService.init()
     val data = cacheService.doCachePut()
     return if(data == null)  return null else data as? T
@@ -51,20 +52,25 @@ inline fun <reified T: Any> CachePut(init: CacheService.() -> Unit): T?{
  * -allEntries是表示是否需要清除缓存中所有的元素。
  *
  * */
-inline fun <reified T: Any> CacheEvict (init: CacheService.() -> Unit): T?{
-    val cacheService = CacheService()
+inline fun <reified T: Any> CacheEvict (init: CacheServiceDsl.() -> Unit): T?{
+    val cacheService = CacheServiceDsl()
     cacheService.init()
     val data =  cacheService.doCacheEvict()
     return if(data == null)  return null else data as? T
 }
 
 
+
+
 /**
  * 操纵缓存的类
  * */
-open class CacheService
+open class CacheServiceDsl()
 {
-    private val log = LoggerFactory.getLogger("CacheService")
+    companion object{
+        private val log = LoggerFactory.getLogger("CacheService")
+    }
+
 
     /**
      * 是否激活log输出，默认为false
@@ -73,7 +79,7 @@ open class CacheService
     /**
      * cache,可以自己重新指定，不指定的话不进行任何缓存操作
      * */
-    var cache: CacheInterface? = null
+    var cache: ICache? = null
 
     /**
      * 缓存的键
@@ -181,7 +187,7 @@ open class CacheService
 
     fun doCacheEvict():Any?{
         if(enableLog) log.info("doCacheEvict...key=$key")
-        var value:Any? = callBlock?.let{ callBlock!!()}
+        val value:Any? = callBlock?.let{ callBlock!!()}
 
         if(conditionBlock(value)){
             key?.let{ cache?.evict(key!!) }
@@ -189,5 +195,52 @@ open class CacheService
         }
 
         return value
+    }
+}
+
+/**
+ * 非DSL版本，简化实现，直接注入后进行调用
+ * */
+open class CacheService<T>(private val cache: ICache): KoinComponent
+{
+    /**
+     * 首先检查缓存，缓存中若存在则直接返回(可能为null)；否则返回block执行后的返回值(可能为null)
+     * */
+    fun cacheable(key: String, block: () -> T?): T?
+    {
+        var value: T?  = cache[key] as? T
+        if(value != null && value is NullValue)
+        {
+            value = null
+        }else{
+            value = block()
+            cache.put(key, value?: NullValue())
+        }
+        return value
+    }
+    /**
+     * 返回block执行后的返回值
+     * */
+    fun put(key: String, block: () -> T?): T?
+    {
+        val value: T? = block()
+        cache.put(key, value?: NullValue())
+        return value
+    }
+    /**
+     * 返回block执行后的返回值
+     * */
+    fun evict(key: String, block: () -> Any?): Any?
+    {
+        cache.evict(key)
+        return block()
+    }
+    /**
+     * 返回block执行后的返回值
+     * */
+    fun batchEvict(keys: List<String>, block: () -> Any?): Any?
+    {
+        keys.forEach { cache.evict(it) }
+        return block()
     }
 }
