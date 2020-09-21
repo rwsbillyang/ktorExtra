@@ -30,10 +30,11 @@ fun JsonBuilder.apiJsonBuilder(){
 //    ))
 }
 
+@Deprecated("use ObjectIdStringSerializer instead")
 @Serializer(forClass = ObjectId::class)
-object ObjectIdStringSerializer: KSerializer<ObjectId> {
+object ObjectIdHexStringSerializer: KSerializer<ObjectId> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("ObjectIdStringSerializer", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor("ObjectIdHexStringSerializer", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: ObjectId) {
         encoder.encodeString(value.toHexString())
@@ -41,6 +42,25 @@ object ObjectIdStringSerializer: KSerializer<ObjectId> {
 
     override fun deserialize(decoder: Decoder): ObjectId {
         return ObjectId(decoder.decodeString())
+    }
+}
+
+/**
+ * based on Base64 URL Encoder and Decoder
+ * */
+@Serializer(forClass = ObjectId::class)
+object ObjectIdStringSerializer: KSerializer<ObjectId> {
+    private val base64Decoder = Base64.getUrlDecoder()
+    private val base64Encoder = Base64.getUrlEncoder()
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("ObjectIdStringSerializer", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: ObjectId) {
+        base64Encoder.encodeToString(value.toByteArray())
+    }
+
+    override fun deserialize(decoder: Decoder): ObjectId {
+        return ObjectId(base64Decoder.decode(decoder.decodeString()))
     }
 }
 

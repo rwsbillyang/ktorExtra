@@ -74,7 +74,7 @@ class AuthUserInfo(
     /**
      * 最终结果，为null表示未定
      * */
-    var hasPermission: Boolean? = null
+    var isAllow: Boolean? = null
 
     companion object {
         const val KEY_LEVEL = "level"
@@ -293,7 +293,7 @@ abstract class JwtHelper(
 
         val authInfo = AuthUserInfo(uId, level, role)
         val result = hasPermission(call, action, subject, authInfo)
-        authInfo.hasPermission = result
+        authInfo.isAllow = result
 
         call.attributes.put(AuthUserInfoKey, authInfo)
         return result
