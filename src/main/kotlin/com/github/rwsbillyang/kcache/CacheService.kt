@@ -201,12 +201,12 @@ open class CacheServiceDsl()
 /**
  * 非DSL版本，简化实现，直接注入后进行调用
  * */
-open class CacheService<T>(private val cache: ICache): KoinComponent
+open class CacheService(private val cache: ICache): KoinComponent
 {
     /**
      * 首先检查缓存，缓存中若存在则直接返回(可能为null)；否则返回block执行后的返回值(可能为null)
      * */
-    fun cacheable(key: String, block: () -> T?): T?
+    fun <T> cacheable(key: String, block: () -> T?): T?
     {
         var value: T?  = cache[key] as? T
         if(value != null && value is NullValue)
@@ -221,7 +221,7 @@ open class CacheService<T>(private val cache: ICache): KoinComponent
     /**
      * 返回block执行后的返回值
      * */
-    fun put(key: String, block: () -> T?): T?
+    fun <T> put(key: String, block: () -> T?): T?
     {
         val value: T? = block()
         cache.put(key, value?: NullValue())
@@ -230,7 +230,7 @@ open class CacheService<T>(private val cache: ICache): KoinComponent
     /**
      * 返回block执行后的返回值
      * */
-    fun evict(key: String, block: () -> Any?): Any?
+    fun <T> evict(key: String, block: () -> T): T
     {
         cache.evict(key)
         return block()
@@ -238,7 +238,7 @@ open class CacheService<T>(private val cache: ICache): KoinComponent
     /**
      * 返回block执行后的返回值
      * */
-    fun batchEvict(keys: List<String>, block: () -> Any?): Any?
+    fun <T> batchEvict(keys: List<String>, block: () -> T): T
     {
         keys.forEach { cache.evict(it) }
         return block()
