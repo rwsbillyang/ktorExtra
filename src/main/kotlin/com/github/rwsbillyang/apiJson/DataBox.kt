@@ -14,13 +14,15 @@ object Code{
  * https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/serializers.md#custom-serializers-for-a-generic-type
  * */
 @Serializable
-data class ResponseBox<T>(var code: String,
-                   var msg: String? = null, val data: T? = null)
+data class DataBox<T>(
+    val code: String,
+    val msg: String? = null,
+    val data: T? = null)
 {
     companion object{
-        fun <T> ok(data: T?) = ResponseBox(Code.OK, data = data)
-        fun ko(msg: String) = ResponseBox<Nothing>(Code.KO, msg)
-        fun needLogin(msg: String) = ResponseBox<Nothing>(Code.NeedLogin, msg)
+        fun <T> ok(data: T?) = DataBox(Code.OK, data = data)
+        fun ko(msg: String) = DataBox<Unit>(Code.KO, msg)
+        fun needLogin(msg: String) = DataBox<Unit>(Code.NeedLogin, msg)
     }
 }
 
@@ -45,14 +47,14 @@ open class Box(
  * @param data 返回的负载数据 response payload
  * */
 @Serializable
-data class DataBox(@Contextual val data: Any?) : Box(Code.OK)
+data class AnyBox(@Contextual val data: Any?) : Box(Code.OK)
 {
     constructor(): this(null)
 
     companion object{
-        fun ok(data: Any?) = DataBox(data)
-        fun ko(msg: String) = DataBox(null).apply { code = Code.KO }
-        fun needLogin(msg: String) = DataBox(null).apply { code = Code.NeedLogin }
+        fun ok(data: Any?) = AnyBox(data)
+        fun ko(msg: String) = AnyBox(null).apply { code = Code.KO }
+        fun needLogin(msg: String) = AnyBox(null).apply { code = Code.NeedLogin }
     }
 }
 

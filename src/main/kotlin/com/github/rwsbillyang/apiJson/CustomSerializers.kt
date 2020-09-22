@@ -19,7 +19,7 @@ val apiJson = Json {
 }
 
 fun JsonBuilder.apiJsonBuilder(){
-    encodeDefaults = true
+    encodeDefaults = false
     ignoreUnknownKeys = true
     //isLenient = true
     allowSpecialFloatingPointValues = true

@@ -2,11 +2,14 @@ package com.github.rwsbillyang.ktorExt
 
 import com.github.rwsbillyang.apiJson.UmiBox
 import com.github.rwsbillyang.apiJson.Code
+import com.github.rwsbillyang.apiJson.DataBox
+import com.github.rwsbillyang.apiJson.apiJson
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.serialization.encodeToString
 import java.lang.RuntimeException
 
 class AuthenticationException : RuntimeException()
@@ -36,3 +39,6 @@ fun Routing.exceptionPage()
 
     }
 }
+
+suspend inline fun <reified T> ApplicationCall.respondT(box: DataBox<T>) =
+    respondText(apiJson.encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)

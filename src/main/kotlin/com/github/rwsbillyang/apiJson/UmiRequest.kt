@@ -46,15 +46,15 @@ open class UmiBox(
  * @param data response payload
  * */
 @Serializable
-data class UmiDataBox(@Contextual val data: Any?)
+data class UmiAnyBox(@Contextual val data: Any?)
     : UmiBox(Code.OK)
 {
     constructor(): this(null)
 
     companion object{
-        fun ok(data: Any?) = UmiDataBox(data)
-        fun ko(msg: String, type: Int = WARN_MESSAGE) = UmiDataBox(null).apply { code = Code.KO }
-        fun needLogin(msg: String, type: Int = REDIRECT) = UmiDataBox(null).apply { code = Code.NeedLogin }
+        fun ok(data: Any?) = UmiAnyBox(data)
+        fun ko(msg: String, type: Int = WARN_MESSAGE) = UmiAnyBox(null).apply { code = Code.KO }
+        fun needLogin(msg: String, type: Int = REDIRECT) = UmiAnyBox(null).apply { code = Code.NeedLogin }
     }
 }
 
