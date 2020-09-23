@@ -21,8 +21,8 @@ data class DataBox<T>(
 {
     companion object{
         fun <T> ok(data: T?) = DataBox(Code.OK, data = data)
-        fun ko(msg: String) = DataBox<Unit>(Code.KO, msg)
-        fun needLogin(msg: String) = DataBox<Unit>(Code.NeedLogin, msg)
+        fun <T> ko(msg: String) = DataBox<T>(Code.KO, msg)
+        fun <T> needLogin(msg: String) = DataBox<T>(Code.NeedLogin, msg)
     }
 }
 
