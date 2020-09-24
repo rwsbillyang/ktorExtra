@@ -8,14 +8,26 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonBuilder
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.bson.types.ObjectId
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 
-val apiJson = Json {
-    apiJsonBuilder()
+
+object ApiJson{
+    val json = Json {
+        apiJsonBuilder()
+    }
+    val json2 = Json {
+        apiJsonBuilder()
+        serializersModule = SerializersModule{
+        contextual(ObjectIdBase64Serializer)
+        contextual(LocalDateTimeStringSerializer)
+    }
+    }
 }
 
 fun JsonBuilder.apiJsonBuilder(){
@@ -24,10 +36,7 @@ fun JsonBuilder.apiJsonBuilder(){
     //isLenient = true
     allowSpecialFloatingPointValues = true
     useArrayPolymorphism = false
-//    serialModule = serializersModuleOf(mapOf(
-//        ObjectId::class to ObjectIdStringSerializer,
-//        LocalDateTime::class to LocalDateTimeStringSerializer
-//    ))
+
 }
 
 @Deprecated("use ObjectIdBase64Serializer instead")
@@ -56,7 +65,7 @@ object ObjectIdBase64Serializer: KSerializer<ObjectId> {
         PrimitiveSerialDescriptor("ObjectIdBase64Serializer", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: ObjectId) {
-        base64Encoder.encodeToString(value.toByteArray())
+        encoder.encodeString(base64Encoder.encodeToString(value.toByteArray()))
     }
 
     override fun deserialize(decoder: Decoder): ObjectId {
@@ -65,6 +74,7 @@ object ObjectIdBase64Serializer: KSerializer<ObjectId> {
 }
 
 fun ObjectId.to64String() = Base64.getUrlEncoder().encodeToString(toByteArray())
+fun String.toObjectId() = ObjectId(Base64.getUrlDecoder().decode(this))
 
 
 @Serializer(forClass = LocalDateTime::class)
