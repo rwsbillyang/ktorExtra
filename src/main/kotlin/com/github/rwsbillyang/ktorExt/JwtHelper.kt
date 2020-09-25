@@ -31,19 +31,26 @@ import java.util.*
  * webapp登录时收到token之后，亦需将uId设置到header "X-Auth-uId"之中
  * */
 val ApplicationCall.uId
-        get() = this.request.headers["X-Auth-uId"]
+    get() = this.request.headers["X-Auth-uId"]
 
-/**
- * 扩展成员 用户Id，从token中提取
- * */
 //val ApplicationCall.uId: String
 //    get() = this.authentication.principal<JWTPrincipal>()!!.payload.getClaim(JwtHelper.KeyUID).asString()
+
+
+var ApplicationCall.authInfo: AuthUserInfo
+    get() = this.attributes.take(AuthUserInfoKey)
+    set(value) = this.attributes.put(AuthUserInfoKey,value)
+
+// Declared as a global property
+private val AuthUserInfoKey = AttributeKey<AuthUserInfo>("AuthUserInfo")
+
+
 
 
 /**
  *
  * */
-enum class Role { Guest, User, Admin, Root }
+enum class Role { guest, user, admin, root }
 
 /**
  * 暂只有读写两样权限
@@ -51,8 +58,6 @@ enum class Role { Guest, User, Admin, Root }
 enum class Action { READ, WRITE, ALL }
 
 
-// Declared as a global property
-val AuthUserInfoKey = AttributeKey<AuthUserInfo>("AuthUserInfo")
 
 interface IAuthUserInfo
 {
@@ -122,7 +127,7 @@ abstract class AbstractJwtHelper(
 
         val uId = claim.asString()
         if (!isAuthentic(uId)) {
-            log.info("no user or user($uId) is disabled")
+            log.info("no user or uId($uId) is disabled")
             return null
         }
 
@@ -244,6 +249,8 @@ abstract class JwtHelper(
     expireDays: Int = 90
 ) : AbstractJwtHelper(secretKey, issuer, realm, audience, subject, expireDays)
 {
+    fun generateToken(authUserInfo: AuthUserInfo) = generateToken(authUserInfo.uId, authUserInfo.level,authUserInfo.role)
+
     fun generateToken(uId: String, level: Int?, role: List<String>?): String {
         val jti = RandomStringUtils.randomAlphanumeric(8)
         return generateToken(jti) {
@@ -276,10 +283,10 @@ abstract class JwtHelper(
         }
 
         val uId: String = uIdClaim.asString()
-//        if(call.uId != uId){
-//            log.warn("uId not set in X-Auth-Header? should be same as one in token")
-//            return false
-//        }
+        if(call.uId != uId){
+            log.warn("uId not set in X-Auth-uId? should be same as one in token")
+            return false
+        }
 
         val levelClaim = payload.getClaim(AuthUserInfo.KEY_LEVEL)
         val level = if (levelClaim.isNull) {
@@ -295,7 +302,8 @@ abstract class JwtHelper(
         val result = hasPermission(call, action, subject, authInfo)
         authInfo.isAllow = result
 
-        call.attributes.put(AuthUserInfoKey, authInfo)
+        log.info("set authInfo in JwtHelper.isAuthorized")
+        call.authInfo =  authInfo
         return result
     }
 
