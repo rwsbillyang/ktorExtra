@@ -302,7 +302,7 @@ abstract class JwtHelper(
         val result = hasPermission(call, action, subject, authInfo)
         authInfo.isAllow = result
 
-        log.info("set authInfo in JwtHelper.isAuthorized")
+        //log.info("set authInfo in JwtHelper.isAuthorized")
         call.authInfo =  authInfo
         return result
     }
