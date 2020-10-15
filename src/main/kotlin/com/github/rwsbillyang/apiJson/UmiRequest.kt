@@ -92,7 +92,9 @@ class UmiPagination(
      val sort: Int = Sort.DESC, //1用于升序，而-1用于降序
      val fKey: String? = null, //filter key
      val filters: List<String>? = null
-)
+){
+    val sortJson = sKey?.let { "{${sKey}:${sort}}" }?:"{_id:-1}"
+}
 
 /**
  * 用于对umi request请求的支持
