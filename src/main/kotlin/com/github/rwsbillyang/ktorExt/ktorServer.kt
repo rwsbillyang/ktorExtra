@@ -2,17 +2,24 @@ package com.github.rwsbillyang.ktorExt
 
 import com.github.rwsbillyang.apiJson.*
 import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.serialization.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonBuilder
+import org.slf4j.event.Level
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -46,6 +53,42 @@ fun Routing.exceptionPage()
 
     }
 }
+
+
+/**
+ * @param jsonBuilderAction 添加额外的自定义json配置，通常用于添加自己的json contextual
+ * */
+@Suppress("unused") // Referenced in application.conf
+@kotlin.jvm.JvmOverloads
+fun Application.defaultInstall(jwtHelper: JwtHelper, testing: Boolean = false,  jsonBuilderAction: (JsonBuilder.() -> Unit)? = null) {
+    install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
+    install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
+
+    install(CallLogging) {
+        level = Level.INFO
+        filter { call -> call.request.path().startsWith("/") }
+    }
+
+    //https://ktor.io/servers/features/content-negotiation/serialization-converter.html
+    //https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md
+    install(ContentNegotiation) {
+        json(json = if(jsonBuilderAction == null) ApiJson.json2 else Json(ApiJson.json2, jsonBuilderAction),
+            contentType = ContentType.Application.Json)
+    }
+
+
+    install(Locations)
+
+    //val jwtHelper: MyJwtHelper by inject()
+    install(Authentication) {
+        jwt {
+            config(jwtHelper)
+        }
+    }
+}
+
+
+
 
 suspend inline fun <reified T> ApplicationCall.respondBox(box: DataBox<T>) =
     respondText(ApiJson.json2.encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)

@@ -16,21 +16,20 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 
-
-object ApiJson{
+object ApiJson {
     val json = Json {
         apiJsonBuilder()
     }
     val json2 = Json {
         apiJsonBuilder()
-        serializersModule = SerializersModule{
-        contextual(ObjectIdBase64Serializer)
-        contextual(LocalDateTimeStringSerializer)
-    }
+        serializersModule = SerializersModule {
+            contextual(ObjectIdBase64Serializer)
+            contextual(LocalDateTimeStringSerializer)
+        }
     }
 }
 
-fun JsonBuilder.apiJsonBuilder(){
+fun JsonBuilder.apiJsonBuilder() {
     encodeDefaults = false
     ignoreUnknownKeys = true
     //isLenient = true
@@ -41,7 +40,7 @@ fun JsonBuilder.apiJsonBuilder(){
 
 @Deprecated("use ObjectIdBase64Serializer instead")
 @Serializer(forClass = ObjectId::class)
-object ObjectIdHexStringSerializer: KSerializer<ObjectId> {
+object ObjectIdHexStringSerializer : KSerializer<ObjectId> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("ObjectIdHexStringSerializer", PrimitiveKind.STRING)
 
@@ -58,7 +57,7 @@ object ObjectIdHexStringSerializer: KSerializer<ObjectId> {
  * based on Base64 URL Encoder and Decoder
  * */
 @Serializer(forClass = ObjectId::class)
-object ObjectIdBase64Serializer: KSerializer<ObjectId> {
+object ObjectIdBase64Serializer : KSerializer<ObjectId> {
     private val base64Decoder = Base64.getUrlDecoder()
     private val base64Encoder = Base64.getUrlEncoder()
     override val descriptor: SerialDescriptor =
@@ -78,7 +77,7 @@ fun String.toObjectId() = ObjectId(Base64.getUrlDecoder().decode(this))
 
 
 @Serializer(forClass = LocalDateTime::class)
-object LocalDateTimeStringSerializer: KSerializer<LocalDateTime> {
+object LocalDateTimeStringSerializer : KSerializer<LocalDateTime> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     override val descriptor: SerialDescriptor =
@@ -89,7 +88,8 @@ object LocalDateTimeStringSerializer: KSerializer<LocalDateTime> {
     }
 
     override fun deserialize(decoder: Decoder): LocalDateTime {
-        return LocalDateTime.parse(decoder.decodeString(),
+        return LocalDateTime.parse(
+            decoder.decodeString(),
             formatter
         )
     }

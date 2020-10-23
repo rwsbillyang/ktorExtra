@@ -14,10 +14,15 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC" // JVM dependency
-    compileOnly "io.ktor:ktor-auth-jwt:$ktor_version"
+    implementation("ch.qos.logback:logback-classic:$logback_version")
+    testImplementation("io.ktor:ktor-server-tests:$ktor_version")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC") // JVM dependency
+    compileOnly("io.ktor:ktor-serialization:$ktor_version")
+    compileOnly("io.ktor:ktor-auth-jwt:$ktor_version")
+    compileOnly("io.ktor:ktor-locations:$ktor_version")
+
 
     implementation "ch.qos.logback:logback-classic:$logback_version"
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
@@ -25,8 +30,7 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
     implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
 
-    // https://mvnrepository.com/artifact/org.mongodb/bson
-    implementation group: 'org.mongodb', name: 'bson', version: '4.1.0'
+
 
     implementation ("org.koin:koin-core:$koin_version")
 
@@ -45,12 +49,13 @@ dependencies {
     compileOnly group: 'com.auth0', name: 'java-jwt', version: '3.10.3'
 
 
-
-
 //    compileOnly 'org.litote.kmongo:kmongo-serialization:3.12.2'
 //    compileOnly 'org.litote.kmongo:kmongo-async-serialization:3.12.2'
 //    compileOnly 'org.litote.kmongo:kmongo-coroutine-serialization:3.12.2'
 //    compileOnly 'org.litote.kmongo:kmongo-id:3.12.2'
+    compileOnly ("com.github.jershell:kbson:$kbson_version")
+    // https://mvnrepository.com/artifact/org.mongodb/bson
+    implementation group: 'org.mongodb', name: 'bson', version: '4.1.0'
 
     compileOnly "com.github.ben-manes.caffeine:caffeine:2.7.0+"
 
