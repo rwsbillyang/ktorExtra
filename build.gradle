@@ -8,6 +8,13 @@ plugins {
 group 'com.github.rwsbillyang'
 version '1.0.0'
 
+sourceSets {
+    main.kotlin.srcDirs = main.java.srcDirs = ['src']
+    //test.kotlin.srcDirs = test.java.srcDirs = ['test']
+    //main.resources.srcDirs = ['resources']
+    //test.resources.srcDirs = ['testresources']
+}
+
 
 repositories {
     mavenCentral()
@@ -24,7 +31,6 @@ dependencies {
     compileOnly("io.ktor:ktor-locations:$ktor_version")
 
 
-    implementation "ch.qos.logback:logback-classic:$logback_version"
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
@@ -33,13 +39,12 @@ dependencies {
 
 
     implementation ("org.koin:koin-core:$koin_version")
-
-//    // Koin for Kotlin
-//    compileOnly "org.koin:koin-core:$koin_version"
-//    // Koin extended & experimental features
-//    compileOnly "org.koin:koin-core-ext:$koin_version"
-//    // Koin for Ktor Kotlin
-//    compileOnly "org.koin:koin-ktor:$koin_version"
+    // Koin for Kotlin
+    compileOnly "org.koin:koin-core:$koin_version"
+    // Koin extended & experimental features
+    compileOnly "org.koin:koin-core-ext:$koin_version"
+    // Koin for Ktor Kotlin
+    compileOnly "org.koin:koin-ktor:$koin_version"
 
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     //compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
@@ -49,10 +54,10 @@ dependencies {
     compileOnly group: 'com.auth0', name: 'java-jwt', version: '3.10.3'
 
 
-//    compileOnly 'org.litote.kmongo:kmongo-serialization:3.12.2'
-//    compileOnly 'org.litote.kmongo:kmongo-async-serialization:3.12.2'
-//    compileOnly 'org.litote.kmongo:kmongo-coroutine-serialization:3.12.2'
-//    compileOnly 'org.litote.kmongo:kmongo-id:3.12.2'
+    compileOnly "org.litote.kmongo:kmongo-serialization:$kmongo_version"
+    compileOnly "org.litote.kmongo:kmongo-async-serialization:$kmongo_version"
+    compileOnly "org.litote.kmongo:kmongo-coroutine-serialization:$kmongo_version"
+    compileOnly "org.litote.kmongo:kmongo-id:$kmongo_version"
     compileOnly ("com.github.jershell:kbson:$kbson_version")
     // https://mvnrepository.com/artifact/org.mongodb/bson
     implementation group: 'org.mongodb', name: 'bson', version: '4.1.0'

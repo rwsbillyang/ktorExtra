@@ -315,4 +315,13 @@ abstract class JwtHelper(
     abstract fun hasPermission(call: ApplicationCall, action: Action, subject: String, authUserInfo: AuthUserInfo): Boolean?
 }
 
+class TestJwtHelper(): JwtHelper("test secret key","test issuer") {
+    override fun isAuthentic(uId: String) = true
 
+    override fun hasPermission(
+        call: ApplicationCall,
+        action: Action,
+        subject: String,
+        authUserInfo: AuthUserInfo
+    ) = true
+}
