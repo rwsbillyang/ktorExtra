@@ -29,18 +29,18 @@ import org.slf4j.event.Level
 
 /**
  * @param modules 需要注入的实例的模块列表
- * @param dbName 数据库名称，模块默认提供，installAppModule提供时将覆盖它
+ * @param dbName 数据库名称，模块默认提供，为null，则不注入DataSource；installAppModule若提供时将覆盖它
  * @param routing route api
  * */
 class AppModule(
     val modules: List<Module>?,
-    var dbName: String,
-    val routing: (Routing.(jwtHelper: JwtHelper) -> Unit)? = null
+    var dbName: String?,
+    val routing: (Routing.() -> Unit)? = null
 )
 
 
 private val _MyKoinModules = mutableListOf<Module>()
-private val _MyRoutings = mutableListOf<Routing.(jwtHelper: JwtHelper) -> Unit>()
+private val _MyRoutings = mutableListOf<Routing.() -> Unit>()
 
 /**
  * 安装appModule，实际完成功能是
@@ -59,11 +59,14 @@ fun Application.installModule(
     port: Int = 27017
 ): Application {
     dbName?.let { app.dbName = it }
-    val module = module {
-        single(named(app.dbName)) { DataSource(app.dbName, host, port) }
+    app.dbName?.let {
+        val name = it
+        val module = module {
+            single(named(it)) { DataSource(name, host, port) }
+        }
+        _MyKoinModules.add(module)
     }
 
-    _MyKoinModules.add(module)
 
     app.modules?.let { _MyKoinModules.plusAssign(it) }
     app.routing?.let { _MyRoutings.plusAssign(it) }
@@ -134,7 +137,7 @@ fun Application.defaultInstall(
 
     _MyRoutings.forEach {
         routing {
-            it(jwtHelper)
+            it()
         }
     }
 }
