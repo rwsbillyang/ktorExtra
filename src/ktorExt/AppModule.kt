@@ -1,7 +1,6 @@
 package com.github.rwsbillyang.appModule
 
 
-
 import com.github.rwsbillyang.data.DataSource
 import com.github.rwsbillyang.apiJson.ApiJson
 import com.github.rwsbillyang.kcache.CaffeineCache
@@ -36,18 +35,18 @@ import org.slf4j.event.Level
 class AppModule(
     val modules: List<Module>?,
     var dbName: String,
-    val routing: (Routing.() -> Unit)? = null
+    val routing: (Routing.(jwtHelper: JwtHelper) -> Unit)? = null
 )
 
 
 private val _MyKoinModules = mutableListOf<Module>()
-private val _MyRoutings = mutableListOf<Routing.() -> Unit>()
+private val _MyRoutings = mutableListOf<Routing.(jwtHelper: JwtHelper) -> Unit>()
 
 /**
  * 安装appModule，实际完成功能是
  * （1）将待注入的koin module添加到一个私有全局列表，便于defaultInstall中进行 install(Koin)
  * （2）将routing配置加入私有全局列表，便于后面执行，添加endpoint
- * （3）自动注入了DataSource（以数据库名称作为qualifier）和 CaffeineCache，
+ * （3）自动注入了DataSource（以数据库名称作为qualifier）
  * @param app 待安装的module
  * @param dbName 数据库名称，不指定则使用AppModule中的默认名称
  * @param host 数据库host 默认127.0.0.1
@@ -62,13 +61,12 @@ fun Application.installModule(
     dbName?.let { app.dbName = it }
     val module = module {
         single(named(app.dbName)) { DataSource(app.dbName, host, port) }
-        single<ICache> { CaffeineCache() }
     }
 
     _MyKoinModules.add(module)
 
-    app.modules?.let { _MyKoinModules.plus(it) }
-    app.routing?.let { _MyRoutings.plus(it) }
+    app.modules?.let { _MyKoinModules.plusAssign(it) }
+    app.routing?.let { _MyRoutings.plusAssign(it) }
 
     return this
 }
@@ -76,6 +74,8 @@ fun Application.installModule(
 
 /**
  * @param jsonBuilderAction 添加额外的自定义json配置，通常用于添加自己的json contextual
+ *
+ * 自动注入 CaffeineCache，
  * */
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
@@ -84,6 +84,15 @@ fun Application.defaultInstall(
     testing: Boolean = false,
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null
 ) {
+    val module = module {
+        single<ICache> { CaffeineCache() }
+    }
+    _MyKoinModules.add(0, module)
+    install(Koin) {
+        modules(_MyKoinModules)
+    }
+    log.info("_MyKoinModules.size=${_MyKoinModules.size}")
+
     install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
     install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
 
@@ -104,9 +113,6 @@ fun Application.defaultInstall(
 
     install(Locations)
 
-    install(Koin) {
-        modules(_MyKoinModules)
-    }
 
     //val jwtHelper: MyJwtHelper by inject()
     install(Authentication) {
@@ -115,19 +121,21 @@ fun Application.defaultInstall(
         }
     }
 
-    if (testing) {
-        _MyRoutings.add{
-            get("/") {
-                call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-            }
+
+    _MyRoutings.add {
+        get("/") {
+            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
     }
     _MyRoutings.add {
         exceptionPage()
     }
+    log.info("_MyRoutings.size=${_MyRoutings.size}")
 
     _MyRoutings.forEach {
-        routing(it)
+        routing {
+            it(jwtHelper)
+        }
     }
 }
 
