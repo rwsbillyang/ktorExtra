@@ -38,7 +38,30 @@ class AppModule(
     val routing: (Routing.() -> Unit)? = null
 )
 
+class DbConfig(
+    val dbName: String,
+    val host: String = "127.0.0.1",
+    val port: Int = 27017
+){
+    override fun equals(other: Any?): Boolean {
+        if(other == null)
+            return false
+        return if(other is DbConfig){
+            other.dbName == dbName && other.host == host && other.port == port
+        }else
+            false
 
+    }
+
+    override fun hashCode(): Int {
+        var result = dbName.hashCode()
+        result = 31 * result + host.hashCode()
+        result = 31 * result + port
+        return result
+    }
+}
+
+private val _dbConfigSet = mutableSetOf<DbConfig>()
 private val _MyKoinModules = mutableListOf<Module>()
 private val _MyRoutings = mutableListOf<Routing.() -> Unit>()
 
@@ -57,21 +80,15 @@ fun Application.installModule(
     dbName: String? = null,
     host: String = "127.0.0.1",
     port: Int = 27017
-): Application {
+) {
     dbName?.let { app.dbName = it }
     app.dbName?.let {
-        val name = it
-        val module = module {
-            single(named(it)) { DataSource(name, host, port) }
-        }
-        _MyKoinModules.add(module)
+        _dbConfigSet.add(DbConfig(it,host, port))
     }
-
 
     app.modules?.let { _MyKoinModules.plusAssign(it) }
     app.routing?.let { _MyRoutings.plusAssign(it) }
 
-    return this
 }
 
 
@@ -89,7 +106,12 @@ fun Application.defaultInstall(
 ) {
     val module = module {
         single<ICache> { CaffeineCache() }
+        _dbConfigSet.forEach {
+            val config = it
+            single(named(it.dbName)) { DataSource(config.dbName, config.host, config.port) }
+        }
     }
+
     _MyKoinModules.add(0, module)
     install(Koin) {
         modules(_MyKoinModules)
