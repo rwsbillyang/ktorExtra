@@ -33,6 +33,12 @@ import java.util.*
 val ApplicationCall.uId
     get() = this.request.headers["X-Auth-uId"]
 
+val ApplicationCall.oId
+    get() = this.request.headers["X-Auth-oId"]
+
+val ApplicationCall.unionId
+    get() = this.request.headers["X-Auth-unId"]
+
 //val ApplicationCall.uId: String
 //    get() = this.authentication.principal<JWTPrincipal>()!!.payload.getClaim(JwtHelper.KeyUID).asString()
 
@@ -172,7 +178,7 @@ abstract class AbstractJwtHelper(
      * @param subject 操作对象
      *
      * */
-    abstract fun isAuthorized(call: ApplicationCall, action: Action, subject: String): Boolean?
+    abstract fun isAuthorized(call: ApplicationCall, action: Action? = null, subject: String? = null): Boolean?
 
     /**
      * @param jti: jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击
@@ -269,7 +275,7 @@ abstract class JwtHelper(
      * @param subject 操作对象
      *
      * */
-    override fun isAuthorized(call: ApplicationCall, action: Action, subject: String): Boolean? {
+    override fun isAuthorized(call: ApplicationCall, action: Action?, subject: String?): Boolean? {
         val payload = call.authentication.principal<JWTPrincipal>()?.payload
         if (payload == null) {
             log.warn("payload is null")
@@ -312,16 +318,16 @@ abstract class JwtHelper(
      * 用于ApplicationCall的intercept时检查该操作是否有权限
      * @return 具备操作权限返回true，否则返回false; 返回null时表示TBD待决定(适合于数据需要owner时的情况)
      * */
-    abstract fun hasPermission(call: ApplicationCall, action: Action, subject: String, authUserInfo: AuthUserInfo): Boolean?
+    abstract fun hasPermission(call: ApplicationCall, action: Action?, subject: String?, authUserInfo: AuthUserInfo): Boolean?
 }
 
-class TestJwtHelper(): JwtHelper("test secret key","test issuer") {
+class TestJwtHelper: JwtHelper("test secret key","test issuer") {
     override fun isAuthentic(uId: String) = true
 
     override fun hasPermission(
         call: ApplicationCall,
-        action: Action,
-        subject: String,
+        action: Action?,
+        subject: String?,
         authUserInfo: AuthUserInfo
     ) = true
 }

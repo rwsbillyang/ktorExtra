@@ -1,14 +1,10 @@
-package com.github.rwsbillyang.appModule
+package com.github.rwsbillyang.ktorExt
 
 
 import com.github.rwsbillyang.data.DataSource
 import com.github.rwsbillyang.apiJson.ApiJson
 import com.github.rwsbillyang.kcache.CaffeineCache
 import com.github.rwsbillyang.kcache.ICache
-import com.github.rwsbillyang.ktorExt.JwtHelper
-import com.github.rwsbillyang.ktorExt.TestJwtHelper
-import com.github.rwsbillyang.ktorExt.config
-import com.github.rwsbillyang.ktorExt.exceptionPage
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
