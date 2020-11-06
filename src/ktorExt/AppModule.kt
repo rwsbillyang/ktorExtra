@@ -21,6 +21,7 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.ktor.ext.Koin
+import org.koin.ktor.ext.inject
 import org.slf4j.event.Level
 
 /**
@@ -38,13 +39,13 @@ class DbConfig(
     val dbName: String,
     val host: String = "127.0.0.1",
     val port: Int = 27017
-){
+) {
     override fun equals(other: Any?): Boolean {
-        if(other == null)
+        if (other == null)
             return false
-        return if(other is DbConfig){
+        return if (other is DbConfig) {
             other.dbName == dbName && other.host == host && other.port == port
-        }else
+        } else
             false
 
     }
@@ -79,7 +80,7 @@ fun Application.installModule(
 ) {
     dbName?.let { app.dbName = it }
     app.dbName?.let {
-        _dbConfigSet.add(DbConfig(it,host, port))
+        _dbConfigSet.add(DbConfig(it, host, port))
     }
 
     app.modules?.let { _MyKoinModules.plusAssign(it) }
@@ -96,7 +97,6 @@ fun Application.installModule(
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.defaultInstall(
-    jwtHelper: JwtHelper,
     testing: Boolean = false,
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null
 ) {
@@ -135,7 +135,7 @@ fun Application.defaultInstall(
     install(Locations)
 
 
-    //val jwtHelper: MyJwtHelper by inject()
+    val jwtHelper: JwtHelper by inject()
     install(Authentication) {
         jwt {
             config(jwtHelper)
@@ -162,6 +162,12 @@ fun Application.defaultInstall(
 
 
 fun Application.testModule(module: AppModule) {
+    val app = this
+    installModule( AppModule(
+        listOf(module(createdAtStart = true) {
+            single<JwtHelper> { TestJwtHelper() }
+            single<Application> { app }
+        }), null), null)
     installModule(module)
-    defaultInstall(TestJwtHelper(), true)
+    defaultInstall(true)
 }
