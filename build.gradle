@@ -25,7 +25,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
-    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC") // JVM dependency
+    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinx_serialization_version") // JVM dependency
     compileOnly("io.ktor:ktor-serialization:$ktor_version")
     compileOnly("io.ktor:ktor-auth-jwt:$ktor_version")
     compileOnly("io.ktor:ktor-locations:$ktor_version")
