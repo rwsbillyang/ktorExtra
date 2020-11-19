@@ -1,4 +1,4 @@
-package ktorExt
+package com.github.rwsbillyang.ktorExt
 
 import io.ktor.application.*
 import org.koin.core.KoinApplication
