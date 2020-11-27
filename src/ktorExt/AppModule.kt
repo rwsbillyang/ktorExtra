@@ -135,7 +135,7 @@ fun Application.defaultInstall(
     install(Locations)
 
 
-    val jwtHelper: JwtHelper by inject()
+    val jwtHelper: AbstractJwtHelper by inject()
     install(Authentication) {
         jwt {
             config(jwtHelper)

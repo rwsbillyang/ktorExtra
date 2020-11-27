@@ -111,8 +111,8 @@ fun JWTAuthenticationProvider.Configuration.config(jwtHelper: AbstractJwtHelper)
  * @param expireDays 有效期，默认90天
  * */
 abstract class AbstractJwtHelper(
-    secretKey: String,
     private val issuer: String,
+    secretKey: String,
     val realm: String = "Server",
     private val audience: String = "webapp",
     private val subject: String = "server",
@@ -247,8 +247,8 @@ abstract class AbstractJwtHelper(
  * @param expireDays 有效期，默认90天
  * */
 abstract class JwtHelper(
-    secretKey: String,
     issuer: String,
+    secretKey: String,
     realm: String = "Server",
     audience: String = "webapp",
     subject: String = "server",
