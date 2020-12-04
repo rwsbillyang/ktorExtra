@@ -147,6 +147,10 @@ fun Application.defaultInstall(
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
+        //convenience for test api
+        get("/api/hello") {
+            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+        }
     }
     _MyRoutings.add {
         exceptionPage()
@@ -165,7 +169,8 @@ fun Application.testModule(module: AppModule) {
     val app = this
     installModule( AppModule(
         listOf(module(createdAtStart = true) {
-            single<JwtHelper> { TestJwtHelper() }
+            single<UserInfoJwtHelper> { TestJwtHelper() }
+            single<AbstractJwtHelper> { Test2JwtHelper() }
             single<Application> { app }
         }), null), null)
     installModule(module)

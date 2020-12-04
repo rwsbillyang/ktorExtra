@@ -98,14 +98,14 @@ class UmiPagination(
 
 /**
  * 用于对umi request请求的支持
- *
+ * umi可以为空，用于对非antd前端的支持，即参数中无需有UmiPagination所对应参数，将使用UmiPagination的默认值
  * 前端对应着按照UmiListParams的结果将参数扁平化后再encodeURIComponent，作为一个umi参数传递给后端
  * 后端的各种ListParams需实现此接口，对umi参数的解析并反序列化
  * */
 interface IUmiListParams{
-    val umi: String
+    val umi: String?
     val pagination: UmiPagination
-        get() = Json.decodeFromString(URLDecoder.decode(umi,"UTF-8"))
+        get() = umi?.let { Json.decodeFromString(URLDecoder.decode(it,"UTF-8")) }?:UmiPagination()
 }
 /**
  * 删除数据时，传递过来的字符型id列表

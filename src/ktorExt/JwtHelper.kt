@@ -18,6 +18,7 @@ import com.auth0.jwt.JWTCreator
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTCreationException
+import com.auth0.jwt.interfaces.Payload
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
@@ -123,21 +124,26 @@ abstract class AbstractJwtHelper(
 
     private val algorithm: Algorithm = Algorithm.HMAC256(secretKey)
 
-    //abstract fun validate(credential: JWTCredential): Principal?
+    /**
+     * 对JWTCredential.Payload进行校验
+     * */
+    abstract fun validate(payload: Payload):Boolean
+    /**
+     * 判断对某个call请求操作是否有权限
+     * @return 具备操作权限返回true，否则返回false; 返回null时表示TBD待决定(适合于数据需要owner时的情况)
+     *
+     * @param call 操作请求
+     * @param action 操作类型
+     * @param subject 操作对象
+     * */
+    abstract fun isAuthorized(call: ApplicationCall, action: Action? = null, subject: String? = null): Boolean?
+
+
     fun validate(credential: JWTCredential): Principal? {
-        val claim = credential.payload.getClaim(IAuthUserInfo.KEY_UID)
-        if (claim.isNull) {
-            log.info("no claim for ${IAuthUserInfo.KEY_UID} in jwtAuthentication")
-            return null
-        }
-
-        val uId = claim.asString()
-        if (!isAuthentic(uId)) {
-            log.info("no user or uId($uId) is disabled")
-            return null
-        }
-
-        return JWTPrincipal(credential.payload)
+        return if(validate(credential.payload))
+             JWTPrincipal(credential.payload)
+        else
+            null
     }
 
     /**
@@ -154,31 +160,7 @@ abstract class AbstractJwtHelper(
         return v.build() //Reusable verifier instance
     }
 
-    /**
-     * 判断是否是真正的用户，根据用户Id判断用于是否是真正的用户
-     *
-     * @param uId  用户id
-     * @return 真正的用户返回true，否则返回false
-     *
-     * Example code:
-     * ```koltin
-     * if(!ObjectId.isValid(uId)){ return false }
-     * val user = userService.findById(uId)
-     * return user != null && user.status != User.StatusDisabled
-     * ```
-     * */
-    abstract fun isAuthentic(uId: String): Boolean
 
-    /**
-     * 判断用户是否对某个请求操作有权限
-     * @return 具备操作权限返回true，否则返回false; 返回null时表示TBD待决定(适合于数据需要owner时的情况)
-     *
-     * @param call 操作请求
-     * @param action 操作类型
-     * @param subject 操作对象
-     *
-     * */
-    abstract fun isAuthorized(call: ApplicationCall, action: Action? = null, subject: String? = null): Boolean?
 
     /**
      * @param jti: jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击
@@ -235,8 +217,45 @@ abstract class AbstractJwtHelper(
     }
 }
 
+abstract class UIdJwtHelper(issuer: String,
+                     secretKey: String,
+                     realm: String = "Server",
+                     audience: String = "webapp",
+                     subject: String = "server",
+                     expireDays: Int = 90)
+    : AbstractJwtHelper(secretKey, issuer, realm, audience, subject, expireDays)
+{
+    override fun validate(payload: Payload): Boolean {
+        val claim = payload.getClaim(IAuthUserInfo.KEY_UID)
+        if (claim.isNull) {
+            log.info("no claim for ${IAuthUserInfo.KEY_UID} in jwtAuthentication")
+            return false
+        }
 
+        val uId = claim.asString()
+        if (!isAuthentic(uId, payload)) {
+            log.info("no user or uId($uId) is disabled")
+            return false
+        }
 
+        return true
+    }
+
+    /**
+     * 判断是否是真正的用户，根据用户Id判断用于是否是真正的用户
+     *
+     * @param uId  用户id
+     * @return 真正的用户返回true，否则返回false
+     *
+     * Example code:
+     * ```koltin
+     * if(!ObjectId.isValid(uId)){ return false }
+     * val user = userService.findById(uId)
+     * return user != null && user.status != User.StatusDisabled
+     * ```
+     * */
+    abstract fun isAuthentic(uId: String, payload: Payload): Boolean
+}
 /**
  * 写入了uId/level/role等信息的jwt token helper类
  *
@@ -246,14 +265,14 @@ abstract class AbstractJwtHelper(
  * @param subject 默认server
  * @param expireDays 有效期，默认90天
  * */
-abstract class JwtHelper(
+abstract class UserInfoJwtHelper(
     issuer: String,
     secretKey: String,
     realm: String = "Server",
     audience: String = "webapp",
     subject: String = "server",
     expireDays: Int = 90
-) : AbstractJwtHelper(secretKey, issuer, realm, audience, subject, expireDays)
+) : UIdJwtHelper(secretKey, issuer, realm, audience, subject, expireDays)
 {
     fun generateToken(authUserInfo: AuthUserInfo) = generateToken(authUserInfo.uId, authUserInfo.level,authUserInfo.role)
 
@@ -321,8 +340,8 @@ abstract class JwtHelper(
     abstract fun hasPermission(call: ApplicationCall, action: Action?, subject: String?, authUserInfo: AuthUserInfo): Boolean?
 }
 
-class TestJwtHelper: JwtHelper("test secret key","test issuer") {
-    override fun isAuthentic(uId: String) = true
+class TestJwtHelper: UserInfoJwtHelper("test secret key","test issuer") {
+    override fun isAuthentic(uId: String,payload: Payload) = true
 
     override fun hasPermission(
         call: ApplicationCall,
@@ -330,4 +349,12 @@ class TestJwtHelper: JwtHelper("test secret key","test issuer") {
         subject: String?,
         authUserInfo: AuthUserInfo
     ) = true
+}
+
+class Test2JwtHelper: AbstractJwtHelper("test secret key","test issuer") {
+    override fun validate(payload: Payload)= true
+
+    override fun isAuthorized(call: ApplicationCall, action: Action?, subject: String?): Boolean? {
+        return true
+    }
 }
