@@ -32,6 +32,7 @@ object ApiJson {
 fun JsonBuilder.apiJsonBuilder() {
     encodeDefaults = false
     ignoreUnknownKeys = true
+    classDiscriminator = "_class" //某些payload中拥有type字段，会冲突
     //isLenient = true
     allowSpecialFloatingPointValues = true
     useArrayPolymorphism = false

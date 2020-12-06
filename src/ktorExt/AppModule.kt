@@ -170,7 +170,7 @@ fun Application.testModule(module: AppModule) {
     installModule( AppModule(
         listOf(module(createdAtStart = true) {
             single<UserInfoJwtHelper> { TestJwtHelper() }
-            single<AbstractJwtHelper> { Test2JwtHelper() }
+            single<AbstractJwtHelper> { DevJwtHelper() }
             single<Application> { app }
         }), null), null)
     installModule(module)

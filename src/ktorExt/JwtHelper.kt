@@ -139,11 +139,14 @@ abstract class AbstractJwtHelper(
     abstract fun isAuthorized(call: ApplicationCall, action: Action? = null, subject: String? = null): Boolean?
 
 
-    fun validate(credential: JWTCredential): Principal? {
+    open fun validate(credential: JWTCredential): Principal? {
         return if(validate(credential.payload))
              JWTPrincipal(credential.payload)
-        else
+        else{
+            log.warn("validate fail in subclass")
             null
+        }
+
     }
 
     /**
@@ -351,10 +354,8 @@ class TestJwtHelper: UserInfoJwtHelper("test secret key","test issuer") {
     ) = true
 }
 
-class Test2JwtHelper: AbstractJwtHelper("test secret key","test issuer") {
-    override fun validate(payload: Payload)= true
-
-    override fun isAuthorized(call: ApplicationCall, action: Action?, subject: String?): Boolean? {
-        return true
-    }
+//for test
+class DevJwtHelper : AbstractJwtHelper("issuer","devSecretKey"){
+    override fun isAuthorized(call: ApplicationCall, action: Action?, subject: String?) = true
+    override fun validate(payload: Payload) = true
 }
