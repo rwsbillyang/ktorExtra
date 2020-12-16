@@ -83,15 +83,17 @@ class Sort {
  * @param sort 1用于升序，而-1用于降序 与MongoDB一致
  * @param fKey filter key "someKey"
  * @param filters  "filter":{"someKey":["value1",123,"value3"]} 中的列表
+ *
+ * 使用var字段，目的在于应用层可以直接对这些值进行修改（比如出于权限目的）
  * */
 @Serializable
 class UmiPagination(
-     val pageSize: Int = 20,
-     val current: Int = 1,
-     val sKey: String? = null, //sortKey
-     val sort: Int = Sort.DESC, //1用于升序，而-1用于降序
-     val fKey: String? = null, //filter key
-     val filters: List<String>? = null
+     var pageSize: Int = 20,
+     var current: Int = 1,
+     var sKey: String? = null, //sortKey
+     var sort: Int = Sort.DESC, //1用于升序，而-1用于降序
+     var fKey: String? = null, //filter key
+     var filters: List<String>? = null
 ){
     val sortJson = sKey?.let { "{${sKey}:${sort}}" }?:"{_id:-1}"
 }

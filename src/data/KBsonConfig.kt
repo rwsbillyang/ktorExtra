@@ -1,10 +1,10 @@
-package com.github.rwsbillyang.ktorExt
+package com.github.rwsbillyang.data
 
 
 import com.github.jershell.kbson.Configuration
 
 val MyMongoSerializerConfig = Configuration(
-    encodeDefaults = true,
+    encodeDefaults = false,
 // classDiscriminator = "_class",
     nonEncodeNull = true
 )
