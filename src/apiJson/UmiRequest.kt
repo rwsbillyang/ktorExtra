@@ -54,7 +54,7 @@ data class UmiAnyBox(@Contextual val data: Any?)
     companion object{
         fun ok(data: Any?) = UmiAnyBox(data)
         fun ko(msg: String, type: Int = WARN_MESSAGE) = UmiAnyBox(null).apply { code = Code.KO }
-        fun needLogin(msg: String, type: Int = REDIRECT) = UmiAnyBox(null).apply { code = Code.NeedLogin }
+        fun newUser(msg: String, type: Int = REDIRECT) = UmiAnyBox(null).apply { code = Code.NewUser }
     }
 }
 

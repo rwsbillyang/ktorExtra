@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 object Code{
     const val OK = "OK"
     const val KO = "KO"
-    const val NeedLogin = "NeedLogin"
+    //const val NeedLogin = "NeedLogin"
+    const val NewUser = "NewUser"
 }
 /**
  * Custom serializers for a generic type
@@ -22,7 +23,7 @@ data class DataBox<T>(
     companion object{
         fun <T> ok(data: T?) = DataBox(Code.OK, data = data)
         fun <T> ko(msg: String) = DataBox<T>(Code.KO, msg)
-        fun <T> needLogin(msg: String) = DataBox<T>(Code.NeedLogin, msg)
+        fun <T> newUser(msg: String) = DataBox<T>(Code.NewUser, msg)
     }
 }
 
@@ -54,7 +55,7 @@ data class AnyBox(@Contextual val data: Any?) : Box(Code.OK)
     companion object{
         fun ok(data: Any?) = AnyBox(data)
         fun ko(msg: String) = AnyBox(null).apply { code = Code.KO }
-        fun needLogin(msg: String) = AnyBox(null).apply { code = Code.NeedLogin }
+        fun newUser(msg: String) = AnyBox(null).apply { code = Code.NewUser }
     }
 }
 
