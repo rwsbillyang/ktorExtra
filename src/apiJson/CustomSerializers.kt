@@ -1,5 +1,7 @@
 package com.github.rwsbillyang.apiJson
 
+import com.github.rwsbillyang.util.toUtc
+import com.github.rwsbillyang.util.utcToLocalDateTime
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -24,7 +26,9 @@ object ApiJson {
         apiJsonBuilder()
         serializersModule = SerializersModule {
             contextual(ObjectIdBase64Serializer)
-            contextual(LocalDateTimeStringSerializer)
+            //contextual(LocalDateTimeAsStringSerializer)
+            contextual(LocalDateTimeAsLongSerializer)
+
         }
     }
 }
@@ -78,11 +82,11 @@ fun String.toObjectId() = ObjectId(Base64.getUrlDecoder().decode(this))
 
 
 @Serializer(forClass = LocalDateTime::class)
-object LocalDateTimeStringSerializer : KSerializer<LocalDateTime> {
+object LocalDateTimeAsStringSerializer : KSerializer<LocalDateTime> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("LocalDateTimeStringSerializer", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor("LocalDateTimeAsStringSerializer", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
         encoder.encodeString(formatter.format(value))
@@ -96,8 +100,8 @@ object LocalDateTimeStringSerializer : KSerializer<LocalDateTime> {
     }
 }
 
-object DateAsLongSerializer : KSerializer<Date> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.LONG)
-    override fun serialize(encoder: Encoder, value: Date) = encoder.encodeLong(value.time)
-    override fun deserialize(decoder: Decoder): Date = Date(decoder.decodeLong())
+object LocalDateTimeAsLongSerializer : KSerializer<LocalDateTime> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LocalDateTimeAsLongSerializer", PrimitiveKind.LONG)
+    override fun serialize(encoder: Encoder, value: LocalDateTime) = encoder.encodeLong(value.toUtc())
+    override fun deserialize(decoder: Decoder): LocalDateTime = decoder.decodeLong().utcToLocalDateTime()
 }
