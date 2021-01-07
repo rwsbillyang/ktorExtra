@@ -88,7 +88,7 @@ class Sort {
  * */
 @Serializable
 class UmiPagination(
-     var pageSize: Int = 20,
+     var pageSize: Int = 10,
      var current: Int = 1,
      var sKey: String? = null, //sortKey
      var sort: Int = Sort.DESC, //1用于升序，而-1用于降序

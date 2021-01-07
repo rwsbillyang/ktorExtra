@@ -2,6 +2,7 @@ package com.github.rwsbillyang.ktorExt
 
 
 import com.alipay.sofa.rpc.common.RpcConstants
+import com.alipay.sofa.rpc.config.ConsumerConfig
 import com.alipay.sofa.rpc.config.RegistryConfig
 import com.alipay.sofa.rpc.config.ServerConfig
 import com.alipay.sofa.rpc.context.RpcInternalContext
@@ -16,6 +17,7 @@ import org.koin.core.KoinComponent
 import org.slf4j.LoggerFactory
 
 
+
 /**
  * 服务发布过程涉及到三个类 RegistryConfig ，ServerConfig ，ProviderConfig
  * RegistryConfig 表示注册中心。如声明服务注册中心的地址和端口是127.0.0.1:2181，协议是 Zookeeper。
@@ -25,11 +27,11 @@ import org.slf4j.LoggerFactory
  * https://www.sofastack.tech/projects/sofa-rpc/programing-rpc/
  * */
 abstract class SofaRpc(application: Application): LifeCycle(application), KoinComponent{
-    private val log = LoggerFactory.getLogger("SofaRpcConfig")
-
     companion object {
+        val log = LoggerFactory.getLogger("SofaRpcConfig")
+
         @Volatile
-        var closed = false
+        var first = false
 
         val registryConfig: RegistryConfig = RegistryConfig()
             .setProtocol(MyRpcConfig.SOFA_REGISTRY_PROTOCOL)
@@ -49,6 +51,37 @@ abstract class SofaRpc(application: Application): LifeCycle(application), KoinCo
             //.setPort(MyRpcConfig.SOFA_SERVER_PORT + 10) // 设置一个端口，默认12200
             .setAdaptivePort(true)//当端口被占用，自动+1进行适应,默认为false
             .setDaemon(true) // 非守护线程,是否hold住端口，true的话随主线程退出而退出，false的话则要主动退出
+
+
+
+        val clientSet = mutableSetOf<String>()
+    }
+
+    /**
+     * 多个库生成一个app实例时，若注册同一个接口T，会导致多次注入同一接口导致失败，
+     * 若此函数返回null，将不进行注入，否则调用
+     * <code>
+     *     loadKoinModules(module {single<T> { consumerConfig.refer() } })
+     * </code>
+     *
+     * 另一种方案是：使用koin的override功能进行覆盖
+     * */
+    inline fun <reified T> getConsumerConfig(): ConsumerConfig<T>?{
+        val name = T::class.java.name
+        return if(clientSet.contains(name)) {
+            null
+        }else {
+            clientSet.add(name)
+            val consumerConfig: ConsumerConfig<T> = ConsumerConfig<T>()
+                .setInterfaceId(T::class.java.name)
+                .setRegistry(registryConfig)
+            consumerConfig
+        }
+
+        //https://start.insert-koin.io/#/getting-started/modules-definitions?id=module-amp-definitions
+//        loadKoinModules(module {
+//            single<T> { consumerConfig.refer() }
+//        })
     }
 
     init {
@@ -57,25 +90,22 @@ abstract class SofaRpc(application: Application): LifeCycle(application), KoinCo
             publicRpcService()
             injectRpcClient()
         }
-        onStopping{
-            rpcExit()
+
+        //确保一个app实例中只调用一次
+        if(!first){
+            first = true
+            onStopping{
+                log.info("###to clean rpc...###")
+                RpcRuntimeContext.destroy()
+                RpcInternalContext.removeContext()
+                RpcInvokeContext.removeContext()
+            }
         }
+
         subscribeEvent()
     }
 
     abstract fun publicRpcService()
     abstract fun injectRpcClient()
-
-    private fun rpcExit(){
-        if(!closed){ //确保一个app实例中只调用一次
-            closed = true
-            log.info("###to clean rpc...###")
-            RpcRuntimeContext.destroy()
-            RpcInternalContext.removeContext()
-            RpcInvokeContext.removeContext()
-        }else{
-            log.warn("already onExit, do nothing")
-        }
-    }
 }
 
