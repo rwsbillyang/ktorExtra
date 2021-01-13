@@ -95,7 +95,7 @@ class UmiPagination(
      var fKey: String? = null, //filter key
      var filters: List<String>? = null
 ){
-    val sortJson = sKey?.let { "{${sKey}:${sort}}" }?:"{_id:-1}"
+    val sortJson = sKey?.let { "{'${sKey}':${sort}}" }?:"{_id:-1}"
 }
 
 /**
