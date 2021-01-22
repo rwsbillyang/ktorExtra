@@ -5,9 +5,11 @@ import java.io.File
 
 object MyRpcConfig {
     //const val SOFA_REGISTRY_PROTOCOL = RpcConstants.REGISTRY_PROTOCOL_ZK
-    //const val SOFA_REGISTRY_ADDRESS = "127.0.0.1:2181"
     var SOFA_REGISTRY_PROTOCOL = RpcConstants.REGISTRY_PROTOCOL_LOCAL
-    var SOFA_REGISTRY_ADDRESS = "local:///Users/bill/git/youke/zkdata/localRegistry"
+
+    const val SOFA_REGISTRY_ADDRESS = "127.0.0.1:2181"
+    //var SOFA_REGISTRY_ADDRESS = "local:///Users/bill/git/youke/zkdata/localRegistry"
+
 
     var SOFALocalRegistry = System.getProperty("user.home") + File.separator + "localRegistry"
 
