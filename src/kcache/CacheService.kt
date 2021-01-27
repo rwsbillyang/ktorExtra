@@ -204,29 +204,40 @@ open class CacheServiceDsl()
 open class CacheService(private val cache: ICache): KoinComponent
 {
     /**
-     * 首先检查缓存，缓存中若存在则直接返回(可能为null)；否则返回block执行后的返回值(可能为null)
+     * 不空才缓存
      * */
     fun <T> cacheable(key: String, block: () -> T?): T?
     {
+        val value: T?  = cache[key] as? T
+        return value?:block()?.also { cache.put(key, it) }
+    }
+
+    /**
+     * 返回block执行后的返回值, 若返回空不缓存
+     * */
+    fun <T> putable(key: String, block: () -> T?): T?
+    {
+        return block()?.also { cache.put(key, it) }
+    }
+
+    /**
+     * 缓存任何值，包括空值，用于只查询一次的情况，
+     * */
+    fun <T> cacheIncludeNull(key: String, block: () -> T?): T?
+    {
         var value: T?  = cache[key] as? T
-        if(value != null && value is NullValue)
-        {
-            value = null
+        return if(value != null) {
+            if(value is NullValue)
+                null
+            else
+                value
         }else{
             value = block()
             cache.put(key, value?: NullValue())
+            value
         }
-        return value
     }
-    /**
-     * 返回block执行后的返回值
-     * */
-    fun <T> put(key: String, block: () -> T?): T?
-    {
-        val value: T? = block()
-        cache.put(key, value?: NullValue())
-        return value
-    }
+
     /**
      * 返回block执行后的返回值
      * */

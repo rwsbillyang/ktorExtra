@@ -104,7 +104,7 @@ fun JWTAuthenticationProvider.Configuration.config(jwtHelper: AbstractJwtHelper)
 
 /**
  *
- * @param secretKey 秘钥，如RSA秘钥
+ * @param secretKey 秘钥，如RSA秘钥，用于签名的任意秘钥，与域名无关
  * @param issuer 填写自己的域名
  * @param realm 比如xxxServer
  * @param audience 默认webapp
@@ -327,12 +327,11 @@ abstract class UserInfoJwtHelper(
         }else roleClaim.asString().split(",")
 
         val authInfo = AuthUserInfo(uId, level, role)
-        val result = hasPermission(call, action, subject, authInfo)
-        authInfo.isAllow = result
+        authInfo.isAllow = hasPermission(call, action, subject, authInfo)
 
         //log.info("set authInfo in JwtHelper.isAuthorized")
         call.authInfo =  authInfo
-        return result
+        return authInfo.isAllow
     }
 
     /**
