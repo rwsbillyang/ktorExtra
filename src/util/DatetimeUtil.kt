@@ -43,4 +43,6 @@ object DatetimeUtil {
             null
         }
     }
+
+    fun format(time: Long, format: String = "yyyy-MM-dd hh:mm:ss") = time.utcToLocalDateTime().format(DateTimeFormatter.ofPattern(format))
 }
