@@ -101,9 +101,9 @@ abstract class SofaRpc(application: Application): LifeCycle(application), KoinCo
                 RpcInvokeContext.removeContext()
             }
         }
-
-        subscribeEvent()
     }
+
+
 
     abstract fun publicRpcService()
     abstract fun injectRpcClient()

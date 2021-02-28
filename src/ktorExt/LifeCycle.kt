@@ -8,64 +8,63 @@ import org.koin.ktor.ext.KoinApplicationStarted
  * convenience for application subscription
  * */
 open class LifeCycle(val application: Application) {
+    companion object{
+        //private var onStartedHandlersAtOnce = mutableSetOf<(KoinApplication) -> Unit>()
+        var onStartedHandlers = mutableSetOf<(KoinApplication) -> Unit>()
+        var onStoppingHandlers = mutableSetOf<(Application) -> Unit>()
+    }
 
     /**
      * 指定启动后的执行代码块
      * */
-    fun onStarted(block: (KoinApplication) -> Unit) {
-        onStartedHandler = block
+    fun onStarted(block: (KoinApplication) -> Unit){
+        onStartedHandlers.add(block)
+        application.environment.monitor.subscribe(KoinApplicationStarted, block)
+        prepareReleaseSelf()
     }
+
+
     /**
      * 指定关闭时的执行代码块
      * */
-    fun onStopping(block: (Application) -> Unit) {
-        onStoppingHandler = block
+    fun onStopping(block: (Application) -> Unit){
+        onStoppingHandlers.add(block)
+        // https://start.insert-koin.io/#/getting-started/koin-for-ktor
+        application.environment.monitor.subscribe(ApplicationStopping, block)
+        prepareReleaseSelf()
     }
 
-    private var onStartedHandler: ((KoinApplication) -> Unit)? = null
-    private var onStoppingHandler: ((Application) -> Unit)? = null
+
     private var onStoppedHandler: ((Application) -> Unit)? = null
-    private var hasSubscription = false
+    private var hasSubscriped= false
 
     /**
      * 指定完启动后和关闭时的代码块，需要调用subscribeEvent()进行订阅
      * */
-    fun subscribeEvent() {
+    private fun prepareReleaseSelf() {
+        if(hasSubscriped) return
+
+        hasSubscriped = true
+
         val monitor = application.environment.monitor
 
-        //https://start.insert-koin.io/#/getting-started/koin-for-ktor
-        onStartedHandler?.let {
-            //订阅启动后的执行动作
-            monitor.subscribe(KoinApplicationStarted, it)
-            hasSubscription = true
-        }
-
-        onStoppingHandler?.let {
-            //订阅停止时的执行动作
-            monitor.subscribe(ApplicationStopping, it)
-            hasSubscription = true
-        }
-
-        if (hasSubscription) {
-            //停止后取消订阅的动作
-            onStoppedHandler = {
-                onStartedHandler?.let {
-                    //取消订阅
-                    monitor.unsubscribe(KoinApplicationStarted, it)
-                }
-                onStoppingHandler?.let {
-                    //取消订阅
-                    monitor.subscribe(ApplicationStopping, it)
-                }
-                if (onStoppedHandler != null) {
-                    monitor.unsubscribe(ApplicationStopped, onStoppedHandler!!)
-                }
-            }
-
+        //停止后取消订阅的动作
+        onStoppedHandler = {
             if (onStoppedHandler != null) {
-                //订阅停止后的动作
-                monitor.subscribe(ApplicationStopped, onStoppedHandler!!)
+                onStartedHandlers.forEach {
+                    monitor.unsubscribe(KoinApplicationStarted,it)
+                }
+                onStoppingHandlers.forEach {
+                    monitor.unsubscribe(ApplicationStopping, it)
+                }
+                monitor.unsubscribe(ApplicationStopped, onStoppedHandler!!)
             }
         }
+
+        if (onStoppedHandler != null) {
+            //订阅停止后的动作
+            monitor.subscribe(ApplicationStopped, onStoppedHandler!!)
+        }
+
     }
 }
