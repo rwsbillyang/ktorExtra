@@ -40,10 +40,12 @@ val ApplicationCall.oId
 val ApplicationCall.unionId
     get() = this.request.headers["X-Auth-unId"]
 
-//val ApplicationCall.uId: String
-//    get() = this.authentication.principal<JWTPrincipal>()!!.payload.getClaim(JwtHelper.KeyUID).asString()
+val ApplicationCall.token
+    get() = this.request.headers["Authorization"]?.substringAfter("Bearer")?.trim()
 
-
+/**
+ * 只可访问一次
+ * */
 var ApplicationCall.authInfo: AuthUserInfo
     get() = this.attributes.take(AuthUserInfoKey)
     set(value) = this.attributes.put(AuthUserInfoKey,value)
