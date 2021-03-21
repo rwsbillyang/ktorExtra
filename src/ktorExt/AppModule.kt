@@ -97,6 +97,7 @@ fun Application.installModule(
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.defaultInstall(
+    enableJwt: Boolean = true,
     testing: Boolean = false,
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null
 ) {
@@ -134,11 +135,13 @@ fun Application.defaultInstall(
 
     install(Locations)
 
-
-    val jwtHelper: AbstractJwtHelper by inject()
-    install(Authentication) {
-        jwt {
-            config(jwtHelper)
+    if(enableJwt)
+    {
+        val jwtHelper: AbstractJwtHelper by inject()
+        install(Authentication) {
+            jwt {
+                config(jwtHelper)
+            }
         }
     }
 
