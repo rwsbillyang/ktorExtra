@@ -30,21 +30,27 @@ import java.util.*
 
 /**
  * webapp登录时收到token之后，亦需将uId设置到header "X-Auth-uId"之中
+ * user模块中的Account._id或企业微信中的成员id(userId)
  * */
 val ApplicationCall.uId
     get() = this.request.headers["X-Auth-uId"]
 
+//openId
 val ApplicationCall.oId
     get() = this.request.headers["X-Auth-oId"]
 
 val ApplicationCall.unionId
     get() = this.request.headers["X-Auth-unId"]
 
+val ApplicationCall.corpId
+    get() = this.request.headers["X-Auth-CorpId"]
+
 val ApplicationCall.token
     get() = this.request.headers["Authorization"]?.substringAfter("Bearer")?.trim()
 
 /**
  * 只可访问一次
+ * UserInfoJwtHelper中被设置
  * */
 var ApplicationCall.authInfo: AuthUserInfo
     get() = this.attributes.take(AuthUserInfoKey)
@@ -98,9 +104,9 @@ class AuthUserInfo(
 
 
 fun JWTAuthenticationProvider.Configuration.config(jwtHelper: AbstractJwtHelper) {
-    verifier(jwtHelper.verifier())
+    verifier(jwtHelper.getVerifier()) //Configure a token verifier
     this.realm = jwtHelper.realm
-    validate { credential -> jwtHelper.validate(credential) }
+    validate { credential -> jwtHelper.validate(credential) } // Validate JWT payload﻿
 }
 
 
@@ -142,9 +148,10 @@ abstract class AbstractJwtHelper(
 
 
     open fun validate(credential: JWTCredential): Principal? {
-        return if(validate(credential.payload))
-             JWTPrincipal(credential.payload)
-        else{
+        return if(validate(credential.payload)) {
+            //log.info("validate jwt done!")
+            JWTPrincipal(credential.payload)
+        }else{
             log.warn("validate fail in subclass")
             null
         }
@@ -154,7 +161,7 @@ abstract class AbstractJwtHelper(
     /**
      * install Authentication 需要
      * */
-    fun verifier(): JWTVerifier {
+    fun getVerifier(): JWTVerifier {
         val v = JWT.require(algorithm)
             .withIssuer(issuer)
             .withSubject(subject)
@@ -171,7 +178,8 @@ abstract class AbstractJwtHelper(
      * @param jti: jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击
      * @param claims 需要添加的键值对
      * */
-    fun generateToken(jti: String, claims: HashMap<String, String>? = null): String? {
+    fun generateToken(jti: String, claims: HashMap<String, String>? = null)
+    : String? {
         return try {
             val builder = jwtBuilder(jti)
 
@@ -230,6 +238,9 @@ abstract class UIdJwtHelper(issuer: String,
                      expireDays: Int = 90)
     : AbstractJwtHelper(secretKey, issuer, realm, audience, subject, expireDays)
 {
+    /**
+     * 验证payLoad：主要是验证payload中的userId信息
+     * */
     override fun validate(payload: Payload): Boolean {
         val claim = payload.getClaim(IAuthUserInfo.KEY_UID)
         if (claim.isNull) {
@@ -238,7 +249,7 @@ abstract class UIdJwtHelper(issuer: String,
         }
 
         val uId = claim.asString()
-        if (!isAuthentic(uId, payload)) {
+        if (!isValidUser(uId, payload)) {
             log.info("no user or uId($uId) is disabled")
             return false
         }
@@ -259,7 +270,7 @@ abstract class UIdJwtHelper(issuer: String,
      * return user != null && user.status != User.StatusDisabled
      * ```
      * */
-    abstract fun isAuthentic(uId: String, payload: Payload): Boolean
+    abstract fun isValidUser(uId: String, payload: Payload): Boolean
 }
 /**
  * 写入了uId/level/role等信息的jwt token helper类
@@ -345,7 +356,7 @@ abstract class UserInfoJwtHelper(
 }
 
 class TestJwtHelper: UserInfoJwtHelper("test secret key","test issuer") {
-    override fun isAuthentic(uId: String,payload: Payload) = true
+    override fun isValidUser(uId: String,payload: Payload) = true
 
     override fun hasPermission(
         call: ApplicationCall,

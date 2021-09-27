@@ -201,7 +201,7 @@ open class CacheServiceDsl()
 /**
  * 非DSL版本，简化实现，直接注入后进行调用
  * */
-open class CacheService(private val cache: ICache): KoinComponent
+open class CacheService(val cache: ICache): KoinComponent
 {
     /**
      * 不空才缓存
