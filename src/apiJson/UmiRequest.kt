@@ -1,4 +1,4 @@
-package com.github.rwsbillyang.apiJson
+package com.github.rwsbillyang.ktorKit.apiJson
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable

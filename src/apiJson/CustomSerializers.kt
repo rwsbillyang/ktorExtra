@@ -1,7 +1,7 @@
-package com.github.rwsbillyang.apiJson
+package com.github.rwsbillyang.ktorKit.apiJson
 
-import com.github.rwsbillyang.util.toUtc
-import com.github.rwsbillyang.util.utcToLocalDateTime
+import com.github.rwsbillyang.ktorKit.util.toUtc
+import com.github.rwsbillyang.ktorKit.util.utcToLocalDateTime
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor

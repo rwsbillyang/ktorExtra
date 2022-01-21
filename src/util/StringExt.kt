@@ -1,4 +1,4 @@
-package com.github.rwsbillyang.util
+package com.github.rwsbillyang.ktorKit.util
 
 import java.util.regex.Pattern
 

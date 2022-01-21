@@ -1,7 +1,7 @@
 /*
- * Copyright © 2019 rwsbillyang@qq.com
+ * Copyright © 2022 rwsbillyang@qq.com
  *
- * Written by rwsbillyang@qq.com at Beijing Time: 2019-11-05 15:54
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-01-21 17:19
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.github.rwsbillyang.kcache
+package com.github.rwsbillyang.ktorKit.cache
 
 /**
  * null值，避免缓存击穿

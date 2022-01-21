@@ -1,10 +1,10 @@
-package com.github.rwsbillyang.ktorExt
+package com.github.rwsbillyang.ktorKit
 
 
-import com.github.rwsbillyang.data.DataSource
-import com.github.rwsbillyang.apiJson.ApiJson
-import com.github.rwsbillyang.kcache.CaffeineCache
-import com.github.rwsbillyang.kcache.ICache
+import com.github.rwsbillyang.ktorKit.data.DataSource
+import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
+import cache.CaffeineCache
+import cache.ICache
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
@@ -90,6 +90,7 @@ fun Application.installModule(
 
 
 /**
+ * @param enableJwt 为false时只适合于route中无authentication时的情况
  * @param jsonBuilderAction 添加额外的自定义json配置，通常用于添加自己的json contextual
  *
  * 自动注入 CaffeineCache，
