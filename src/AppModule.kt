@@ -29,11 +29,13 @@ import io.ktor.auth.*
 import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
+import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonBuilder
 import org.koin.core.module.Module
@@ -42,6 +44,7 @@ import org.koin.dsl.module
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
 import org.slf4j.event.Level
+import java.time.Duration
 
 /**
  * @param modules 需要注入的实例的模块列表
@@ -119,7 +122,8 @@ fun Application.installModule(
 fun Application.defaultInstall(
     enableJwt: Boolean = true,
     testing: Boolean = false,
-    jsonBuilderAction: (JsonBuilder.() -> Unit)? = null
+    jsonBuilderAction: (JsonBuilder.() -> Unit)? = null,
+    enableWebSocket: Boolean = false
 ) {
     val module = module {
         single<ICache> { CaffeineCache() }
@@ -164,7 +168,14 @@ fun Application.defaultInstall(
             }
         }
     }
-
+    if(enableWebSocket){
+        install(WebSockets) {
+            pingPeriod = Duration.ofSeconds(15)
+            timeout = Duration.ofSeconds(200)
+            maxFrameSize = Long.MAX_VALUE
+            masking = false
+        }
+    }
 
     _MyRoutings.add {
         get("/") {

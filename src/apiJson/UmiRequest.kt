@@ -4,6 +4,8 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.bson.conversions.Bson
+import org.litote.kmongo.bson
 import java.net.URLDecoder
 
 
@@ -73,6 +75,11 @@ class Sort {
     }
 }
 
+//当指定的sortKey不是ObjectId类型时，前端分页传递过来的lastId对应着其他某种类型，
+// 如Number(Long，Float, Int)，String,多数情况下还是按默认的_id，也就是ObjectId类型来处理
+enum class SortKeyType{
+ TypeNumber, TypeString, TypeObjectId
+}
 
 /**
  * umi request列表数据请求参数公共部分基类
@@ -90,12 +97,26 @@ class Sort {
 class UmiPagination(
      var pageSize: Int = 10,
      var current: Int = 1,
-     var sKey: String? = null, //sortKey
+     var sKey: String = "_id", //sortKey
      var sort: Int = Sort.DESC, //1用于升序，而-1用于降序
+     val sKeyType: SortKeyType = SortKeyType.TypeObjectId,
      var fKey: String? = null, //filter key
      var filters: List<String>? = null
 ){
-    val sortJson = sKey?.let { "{'${sKey}':${sort}}" }?:"{_id:-1}"
+    val sortJson = "{'${sKey}':${sort}}"
+
+    /**
+     * 加载分页数据时，若传递过来了lastId信息，根据不同的排序键，以及排序键数据类型，构建不同的截取范围bson
+     * */
+    fun lastIdFilter(lastId: String?): Bson? {
+        if(lastId == null) return null
+        val s = if(sort == Sort.DESC) "\$lt" else "\$gt"
+        return when(sKeyType){
+            SortKeyType.TypeNumber -> "{ '${sKey}': { $s: $lastId } }"
+            SortKeyType.TypeString -> "{ '${sKey}': { $s: `$lastId` } }"
+            SortKeyType.TypeObjectId -> "{ '${sKey}': { $s: ObjectId(\"${lastId.toObjectId().toHexString()}\") } }"
+        }.bson
+    }
 }
 
 /**
