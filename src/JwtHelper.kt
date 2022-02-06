@@ -27,7 +27,7 @@ import com.auth0.jwt.interfaces.Payload
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
-import io.ktor.util.*
+import io.ktor.request.*
 import org.apache.commons.lang3.RandomStringUtils
 import org.koin.core.KoinComponent
 import org.slf4j.LoggerFactory
@@ -53,16 +53,25 @@ val ApplicationCall.corpId
 val ApplicationCall.token
     get() = this.request.headers["Authorization"]?.substringAfter("Bearer")?.trim()
 
+val ApplicationCall.roles
+    get() = this.authentication.principal<JWTPrincipal>()?.payload?.getClaim(AuthUserInfo.KEY_ROLE)?.asString()?.split(",")
+
+fun ApplicationCall.isFromAdmin(): Boolean{
+    val roles = this.roles
+    if(roles.isNullOrEmpty()) return false
+    return roles.contains("admin") || roles.contains("root")
+}
+
 /**
  * 只可访问一次
  * UserInfoJwtHelper中被设置
  * */
-var ApplicationCall.authInfo: AuthUserInfo
-    get() = this.attributes.take(AuthUserInfoKey)
-    set(value) = this.attributes.put(AuthUserInfoKey,value)
-
-// Declared as a global property
-private val AuthUserInfoKey = AttributeKey<AuthUserInfo>("AuthUserInfo")
+//var ApplicationCall.authInfo: AuthUserInfo
+//    get() = this.attributes.take(AuthUserInfoKey)
+//    set(value) = this.attributes.put(AuthUserInfoKey,value)
+//
+//// Declared as a global property
+//private val AuthUserInfoKey = AttributeKey<AuthUserInfo>("AuthUserInfo")
 
 
 
@@ -72,10 +81,10 @@ private val AuthUserInfoKey = AttributeKey<AuthUserInfo>("AuthUserInfo")
  * */
 enum class Role { guest, user, admin, root }
 
-/**
- * 暂只有读写两样权限
- * */
-enum class Action { READ, WRITE, ALL }
+///**
+// * 暂只有读写两样权限
+// * */
+//enum class Action { READ, WRITE, ALL }
 
 
 
@@ -146,11 +155,10 @@ abstract class AbstractJwtHelper(
      * @return 具备操作权限返回true，否则返回false; 返回null时表示TBD待决定(适合于数据需要owner时的情况)
      *
      * @param call 操作请求
-     * @param action 操作类型
-     * @param subject 操作对象
+     * @param needAnyRole 需要具备任何一个该列表里的role才有权限,若为空，则表示无要求
+     * @param needLevel 若为空，则表示无要求；否则大于等于该needLevel才有权限
      * */
-    abstract fun isAuthorized(call: ApplicationCall, action: Action? = null, subject: String? = null): Boolean?
-
+    abstract fun isAuthorized(call: ApplicationCall, needAnyRole: List<String>? = null, needLevel: Int? = null): Boolean
 
     open fun validate(credential: JWTCredential): Principal? {
         return if(validate(credential.payload)) {
@@ -306,16 +314,16 @@ abstract class UserInfoJwtHelper(
             this
         }
     }
+
     /**
      * 判断用户是否对某个请求操作有权限
      * @return 具备操作权限返回true，否则返回false; 返回null时表示TBD待决定(适合于数据需要owner时的情况)
      *
      * @param call 操作请求
-     * @param action 操作类型
-     * @param subject 操作对象
-     *
+     * @param needAnyRole 需要具备任何一个该列表里的role才有权限,若为空，且路径中包含了"/admin/"，则需要"admin"这个角色
+     * @param needLevel 若为空，则表示无要求；否则大于等于该needLevel才有权限
      * */
-    override fun isAuthorized(call: ApplicationCall, action: Action?, subject: String?): Boolean? {
+    override fun isAuthorized(call: ApplicationCall, needAnyRole: List<String>?, needLevel: Int?): Boolean{
         val payload = call.authentication.principal<JWTPrincipal>()?.payload
         if (payload == null) {
             log.warn("payload is null")
@@ -339,40 +347,67 @@ abstract class UserInfoJwtHelper(
             null
         }else levelClaim.asInt()
 
+
         val roleClaim = payload.getClaim(AuthUserInfo.KEY_ROLE)
         val role = if (roleClaim.isNull) {
             null
         }else roleClaim.asString().split(",")
 
-        val authInfo = AuthUserInfo(uId, level, role)
-        authInfo.isAllow = hasPermission(call, action, subject, authInfo)
-
-        //log.info("set authInfo in JwtHelper.isAuthorized")
-        call.authInfo =  authInfo
-        return authInfo.isAllow
+        //若没指定needAnyRole，且请求api路径中包含了"/admin/", 则校验"admin"，否则使用指定的needAnyRole
+        val needRoles = if(needAnyRole.isNullOrEmpty() && call.request.path().contains("/admin/")) listOf("admin") else needAnyRole
+        return checkLevel(needLevel, level) && checkRoles(needRoles, role)
     }
 
-    /**
-     * 是否有权限
-     * 用于ApplicationCall的intercept时检查该操作是否有权限
-     * @return 具备操作权限返回true，否则返回false; 返回null时表示TBD待决定(适合于数据需要owner时的情况)
-     * */
-    abstract fun hasPermission(call: ApplicationCall, action: Action?, subject: String?, authUserInfo: AuthUserInfo): Boolean?
+    private fun checkLevel(needLevel: Int?, level: Int?): Boolean{
+        return if(needLevel != null){
+            when {
+                level == null -> {
+                    log.warn("needLevel: $needLevel, but level is null")
+                    false
+                }
+                level < needLevel -> {
+                    log.warn("needLevel: $needLevel, but level is $level, level is too low")
+                    false
+                }
+                else -> true
+            }
+        }else
+            true
+    }
+    private fun checkRoles(needAnyRole: List<String>?, roles: List<String>?): Boolean{
+        return if(needAnyRole != null && needAnyRole.isNotEmpty()){
+            when {
+                roles == null -> {
+                    log.warn("needAnyRole, but roles is null")
+                    false
+                }
+                roles.isEmpty() -> {
+                    log.warn("needAnyRole, but roles is empty")
+                    false
+                }
+                else -> {
+                    if(roles.contains("root")) return true
+
+                    roles.forEach {
+                        if(needAnyRole.contains(it)) return true
+                    }
+                    return false
+                }
+            }
+        }else
+            true
+    }
+
 }
 
 class TestJwtHelper: UserInfoJwtHelper("test secret key","test issuer") {
     override fun isValidUser(uId: String,payload: Payload) = true
 
-    override fun hasPermission(
-        call: ApplicationCall,
-        action: Action?,
-        subject: String?,
-        authUserInfo: AuthUserInfo
-    ) = true
+    override fun isAuthorized(call: ApplicationCall, needAnyRole: List<String>?, needLevel: Int?) = true
 }
 
 //for test
 class DevJwtHelper : AbstractJwtHelper("issuer","devSecretKey"){
-    override fun isAuthorized(call: ApplicationCall, action: Action?, subject: String?) = true
+    override fun isAuthorized(call: ApplicationCall, needAnyRole: List<String>?, needLevel: Int?) = true
     override fun validate(payload: Payload) = true
 }
