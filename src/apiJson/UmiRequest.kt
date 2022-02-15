@@ -135,11 +135,21 @@ interface IUmiListParams{
  * 示例：{"key":[96,95,94]}
  * */
 @Serializable
-data class IntIds(val key: List<Int>)
+class IntIds(val key: List<Int>)
 
 /**
  * 删除数据时，传递过来的字符型id列表
  * 示例：{"key":["96","95","94"]}
  * */
 @Serializable
-data class StrIds(val key: List<String>)
+ class StrIds(val key: List<String>)
+
+@Serializable
+class BatchOperationParams(
+    val ids: String, //以 ","分隔的_id
+    val action: String, //操作命令如： del, assign, updateStatus
+    val arg1: String? = null, //提交的参数
+    val arg2: String? = null //提交的参数
+)
+
+
