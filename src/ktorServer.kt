@@ -26,6 +26,7 @@ import com.github.rwsbillyang.ktorKit.apiJson.UmiBox
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.serialization.encodeToString
@@ -54,13 +55,17 @@ class BizException(
 fun Routing.exceptionPage()
 {
     install(StatusPages) {
+        val headers = listOf("X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-uId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization")
         exception<AuthenticationException> { cause ->
+            application.environment.log.error("AuthenticationException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respond(HttpStatusCode.Unauthorized)
         }
         exception<AuthorizationException> { cause ->
+            application.environment.log.error("AuthorizationException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respond(HttpStatusCode.Forbidden)
         }
         exception<BizException> { e ->
+            application.environment.log.error("BizException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respond(UmiBox(e.code, e.msg, e.type, e.tId, e.host))
         }
     }

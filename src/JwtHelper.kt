@@ -62,6 +62,11 @@ fun ApplicationCall.isFromAdmin(): Boolean{
     return roles.contains("admin") || roles.contains("root")
 }
 
+//"X-Auth-uId","X-Auth-UserId", "X-Auth-ExternalUserId","X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization"
+fun ApplicationCall.authHeaders(headers: List<String>): String {
+    val auths = headers.joinToString("\n") { "$it:${request.header(it)}" }
+    return "\nroles: ${this.roles}\n"+auths
+}
 /**
  * 只可访问一次
  * UserInfoJwtHelper中被设置
@@ -378,7 +383,7 @@ abstract class UserInfoJwtHelper(
         return if(needAnyRole != null && needAnyRole.isNotEmpty()){
             when {
                 roles == null -> {
-                    log.warn("needAnyRole, but roles is null")
+                    log.warn("need role, but roles is null")
                     false
                 }
                 roles.isEmpty() -> {
@@ -386,11 +391,14 @@ abstract class UserInfoJwtHelper(
                     false
                 }
                 else -> {
-                    if(roles.contains("root")) return true
-
+                    if(roles.contains("root")) {
+                        log.info("root user, allow visit any one")
+                        return true
+                    }
                     roles.forEach {
                         if(needAnyRole.contains(it)) return true
                     }
+                    log.warn("needAnyRole:$needAnyRole  not contain roles:$roles")
                     return false
                 }
             }

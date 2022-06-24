@@ -123,7 +123,8 @@ fun Application.defaultInstall(
     enableJwt: Boolean = true,
     testing: Boolean = false,
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null,
-    enableWebSocket: Boolean = false
+    enableWebSocket: Boolean = false,
+    logHeaders: List<String>? = null //"X-Auth-uId","X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization"
 ) {
     val module = module {
         single<ICache> { CaffeineCache() }
@@ -142,10 +143,18 @@ fun Application.defaultInstall(
     install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
     install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
 
+
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }
+        if (!logHeaders.isNullOrEmpty()) {
+            format { call ->
+                val request = call.request
+                "${request.httpMethod.value} ${request.path()} ${call.authHeaders(logHeaders)}"
+            }
+        }
     }
+
 
     //https://ktor.io/servers/features/content-negotiation/serialization-converter.html
     //https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md
