@@ -40,7 +40,7 @@ implementation("com.github.rwsbillyang:ktorKit:$ktorKitVersion")
    }
    ```
    其中`installModule`用于安装一个module，后面的字符串名称为MongoDB数据库名称。像这样，可以创建多个APP，分别`installModule`不同的module，就实现了不同的app子系统实例，灵活地实现业务系统的拆分。
-   其第一个从参数Koin的modlue列表，表示需要注入的module，第二个参数时数据库名称，可以为null（表示使用appModule的默认名称），第三四个参数时数据库地址和端口号，使用默认值。
+   其第一个从参数Koin的modlue列表，表示需要注入的module，第二个参数时数据库名称，可以为null，意为无数据库，不传参表示使用appModule的默认名称，第三四个参数时数据库地址和端口号，使用默认值。
    
    
    
