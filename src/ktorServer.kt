@@ -19,6 +19,9 @@
 package com.github.rwsbillyang.ktorKit
 
 
+import com.auth0.jwt.exceptions.AlgorithmMismatchException
+import com.auth0.jwt.exceptions.InvalidClaimException
+import com.auth0.jwt.exceptions.TokenExpiredException
 import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
 import com.github.rwsbillyang.ktorKit.apiJson.Code
 import com.github.rwsbillyang.ktorKit.apiJson.DataBox
@@ -63,6 +66,23 @@ fun Routing.exceptionPage()
         exception<AuthorizationException> { cause ->
             application.environment.log.error("AuthorizationException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respond(HttpStatusCode.Forbidden)
+        }
+
+        exception<TokenExpiredException> { e ->
+            application.environment.log.error("TokenExpiredException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+            call.respondBox(DataBox<Unit>(Code.TokenExpired,"登录过期，请点击右上角，退出登录后，重新进入"))
+        }
+        exception<InvalidClaimException> { e ->
+            application.environment.log.error("InvalidClaimException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+            call.respondBox(DataBox.ko<Unit>("无效的token claim，请重新登录"))
+        }
+        exception<AlgorithmMismatchException> { e ->
+            application.environment.log.error("AlgorithmMismatchException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+            call.respondBox(DataBox.ko<Unit>("AlgorithmMismatch"))
+        }
+        exception<AlgorithmMismatchException> { e ->
+            application.environment.log.error("JWTVerificationException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+            call.respondBox(DataBox.ko<Unit>("JWTVerificationException"))
         }
         exception<BizException> { e ->
             application.environment.log.error("BizException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")

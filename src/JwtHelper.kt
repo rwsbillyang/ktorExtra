@@ -110,10 +110,8 @@ class AuthUserInfo(
     val role: List<String>?,
 ): IAuthUserInfo
 {
-    /**
-     * 最终结果，为null表示未定
-     * */
-    var isAllow: Boolean? = null
+    //最终结果，为null表示未定
+    //var isAllow: Boolean? = null
 
     companion object {
         const val KEY_LEVEL = "level"
@@ -125,7 +123,7 @@ class AuthUserInfo(
 fun JWTAuthenticationProvider.Configuration.config(jwtHelper: AbstractJwtHelper) {
     verifier(jwtHelper.getVerifier()) //Configure a token verifier
     this.realm = jwtHelper.realm
-    validate { credential -> jwtHelper.validate(credential) } // Validate JWT payload﻿
+    validate { credential -> jwtHelper.validate(credential) } // Validate JWT payload
 }
 
 
@@ -352,15 +350,11 @@ abstract class UserInfoJwtHelper(
             null
         }else levelClaim.asInt()
 
-
-        val roleClaim = payload.getClaim(AuthUserInfo.KEY_ROLE)
-        val role = if (roleClaim.isNull) {
-            null
-        }else roleClaim.asString().split(",")
+        val roles = payload.getClaim(AuthUserInfo.KEY_ROLE)?.asString()?.split(",")
 
         //若没指定needAnyRole，且请求api路径中包含了"/admin/", 则校验"admin"，否则使用指定的needAnyRole
         val needRoles = if(needAnyRole.isNullOrEmpty() && call.request.path().contains("/admin/")) listOf("admin") else needAnyRole
-        return checkLevel(needLevel, level) && checkRoles(needRoles, role)
+        return checkLevel(needLevel, level) && checkRoles(needRoles, roles)
     }
 
     private fun checkLevel(needLevel: Int?, level: Int?): Boolean{
@@ -379,29 +373,27 @@ abstract class UserInfoJwtHelper(
         }else
             true
     }
+    /**
+     * @param needAnyRole 需要具备的role 若为空表示无需任何权限
+     * @param roles token中用户已具备的role，若为空则很多访问无权限，若为root表示拥有任何权限
+     *
+     * 正常情况下，求二者交集，交集非空表示有权限
+     * */
     private fun checkRoles(needAnyRole: List<String>?, roles: List<String>?): Boolean{
-        return if(needAnyRole != null && needAnyRole.isNotEmpty()){
-            when {
-                roles == null -> {
-                    log.warn("need role, but roles is null")
-                    false
-                }
-                roles.isEmpty() -> {
-                    log.warn("needAnyRole, but roles is empty")
-                    false
-                }
-                else -> {
-                    if(roles.contains("root")) {
-                        log.info("root user, allow visit any one")
-                        return true
-                    }
-                    roles.forEach {
-                        if(needAnyRole.contains(it)) return true
-                    }
-                    log.warn("needAnyRole:$needAnyRole  not contain roles:$roles")
-                    return false
-                }
-            }
+        //不需要任何权限
+        if (needAnyRole.isNullOrEmpty()) return true
+        if (roles.isNullOrEmpty()){
+            log.warn("no role, but need: $needAnyRole")
+            return false
+        }
+        if(roles.contains("root")) {
+            log.info("root user, allow visit any one")
+            return true
+        }
+
+        return if(roles.intersect(needAnyRole).isEmpty()){
+            log.warn("needAnyRole:$needAnyRole intersect roles:$roles isEmpty")
+            false
         }else
             true
     }
@@ -419,3 +411,4 @@ class DevJwtHelper : AbstractJwtHelper("issuer","devSecretKey"){
     override fun isAuthorized(call: ApplicationCall, needAnyRole: List<String>?, needLevel: Int?) = true
     override fun validate(payload: Payload) = true
 }
+

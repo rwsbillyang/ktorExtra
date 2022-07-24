@@ -9,6 +9,7 @@ object Code{
     const val KO = "KO"
     //const val NeedLogin = "NeedLogin"
     const val NewUser = "NewUser"
+    const val TokenExpired = "TokenExpired"
 }
 /**
  * Custom serializers for a generic type
