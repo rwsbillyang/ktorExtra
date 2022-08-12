@@ -19,7 +19,8 @@
 package com.github.rwsbillyang.ktorKit.cache
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import org.koin.core.KoinComponent
+import org.koin.core.component.KoinComponent
+
 import java.util.concurrent.TimeUnit
 
 

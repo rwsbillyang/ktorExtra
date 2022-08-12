@@ -28,9 +28,8 @@ import com.alipay.sofa.rpc.context.RpcInvokeContext
 import com.alipay.sofa.rpc.context.RpcRuntimeContext
 import com.github.rwsbillyang.ktorKit.LifeCycle
 import com.github.rwsbillyang.ktorKit.rpc.MyRpcConfig.SOFALocalRegistry
-import io.ktor.application.*
-
-import org.koin.core.KoinComponent
+import io.ktor.server.application.*
+import org.koin.core.component.KoinComponent
 
 
 import org.slf4j.LoggerFactory
@@ -45,7 +44,7 @@ import org.slf4j.LoggerFactory
  *
  * https://www.sofastack.tech/projects/sofa-rpc/programing-rpc/
  * */
-abstract class SofaRpc(application: Application): LifeCycle(application), KoinComponent{
+abstract class SofaRpc(application: Application): LifeCycle(application), KoinComponent {
     companion object {
         val log = LoggerFactory.getLogger("SofaRpcConfig")
 

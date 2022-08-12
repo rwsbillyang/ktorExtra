@@ -18,9 +18,11 @@
 
 package com.github.rwsbillyang.ktorKit
 
-import io.ktor.application.*
+
+import io.ktor.server.application.*
 import org.koin.core.KoinApplication
-import org.koin.ktor.ext.KoinApplicationStarted
+import org.koin.ktor.plugin.KoinApplicationStarted
+
 
 /**
  * convenience for application subscription

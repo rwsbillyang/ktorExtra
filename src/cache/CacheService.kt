@@ -19,7 +19,8 @@
 package com.github.rwsbillyang.ktorKit.cache
 
 
-import org.koin.core.KoinComponent
+
+import org.koin.core.component.KoinComponent
 import org.slf4j.LoggerFactory
 
 /**

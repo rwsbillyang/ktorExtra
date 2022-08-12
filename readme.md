@@ -2,6 +2,14 @@
 使用ktor经常用到的公共套件， 提取作为公共库，提高重用和开发效率
 
 ## 引入
+repositories中添加：`maven { url 'https://jitpack.io' }`:
+```groovy
+repositories {
+			maven { url 'https://jitpack.io' }
+		}
+```
+
+		
 ```groovy
 implementation("com.github.rwsbillyang:ktorKit:$ktorKitVersion")
 ```
@@ -213,7 +221,8 @@ class ArticleService(cache: ICache) : CacheService(cache){
  * @param keyword 关键字查询
  * @param lastId 上一条记录中最后一条的id，用于分页  Limitation： lastId只有在基于_id排序时才可正确地工作，而且只支持上下一页
  * */
-@Location("/list")
+@Serializable
+@Resource("/list")
 data class ArticleListParams(
         override val umi: String? = null,
         val _id: String? = null,

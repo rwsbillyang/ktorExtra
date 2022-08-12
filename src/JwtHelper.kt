@@ -24,12 +24,14 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTCreationException
 import com.auth0.jwt.interfaces.Payload
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
-import io.ktor.request.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+
 import org.apache.commons.lang3.RandomStringUtils
-import org.koin.core.KoinComponent
+import org.koin.core.component.KoinComponent
+
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -120,11 +122,11 @@ class AuthUserInfo(
 }
 
 
-fun JWTAuthenticationProvider.Configuration.config(jwtHelper: AbstractJwtHelper) {
-    verifier(jwtHelper.getVerifier()) //Configure a token verifier
-    this.realm = jwtHelper.realm
-    validate { credential -> jwtHelper.validate(credential) } // Validate JWT payload
-}
+//fun JWTAuthenticationProvider.config(jwtHelper: AbstractJwtHelper) {
+//    verifier(jwtHelper.getVerifier()) //Configure a token verifier
+//    this.realm = jwtHelper.realm
+//    validate { credential -> jwtHelper.validate(credential) } // Validate JWT payload
+//}
 
 
 /**

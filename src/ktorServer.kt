@@ -26,12 +26,14 @@ import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
 import com.github.rwsbillyang.ktorKit.apiJson.Code
 import com.github.rwsbillyang.ktorKit.apiJson.DataBox
 import com.github.rwsbillyang.ktorKit.apiJson.UmiBox
-import io.ktor.application.*
-import io.ktor.features.*
+
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+
 import kotlinx.serialization.encodeToString
 
 
@@ -55,38 +57,38 @@ class BizException(
     }
 }
 
-fun Routing.exceptionPage()
+fun Routing.exceptionPage(application: Application)
 {
-    install(StatusPages) {
+    application.install(StatusPages) {
         val headers = listOf("X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-uId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization")
-        exception<AuthenticationException> { cause ->
+        exception<AuthenticationException> { call, cause ->
             application.environment.log.error("AuthenticationException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respond(HttpStatusCode.Unauthorized)
         }
-        exception<AuthorizationException> { cause ->
+        exception<AuthorizationException> { call, cause ->
             application.environment.log.error("AuthorizationException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respond(HttpStatusCode.Forbidden)
         }
 
-        exception<TokenExpiredException> { e ->
-            application.environment.log.error("TokenExpiredException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+        exception<TokenExpiredException> { call, cause ->
+            application.environment.log.error("TokenExpiredException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respondBox(DataBox<Unit>(Code.TokenExpired,"登录过期，请点击右上角，退出登录后，重新进入"))
         }
-        exception<InvalidClaimException> { e ->
-            application.environment.log.error("InvalidClaimException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+        exception<InvalidClaimException> { call, cause ->
+            application.environment.log.error("InvalidClaimException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respondBox(DataBox.ko<Unit>("无效的token claim，请重新登录"))
         }
-        exception<AlgorithmMismatchException> { e ->
-            application.environment.log.error("AlgorithmMismatchException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+        exception<AlgorithmMismatchException> { call, cause ->
+            application.environment.log.error("AlgorithmMismatchException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respondBox(DataBox.ko<Unit>("AlgorithmMismatch"))
         }
-        exception<AlgorithmMismatchException> { e ->
-            application.environment.log.error("JWTVerificationException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+        exception<AlgorithmMismatchException> { call, cause ->
+            application.environment.log.error("JWTVerificationException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
             call.respondBox(DataBox.ko<Unit>("JWTVerificationException"))
         }
-        exception<BizException> { e ->
-            application.environment.log.error("BizException: cause=$e, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
-            call.respond(UmiBox(e.code, e.msg, e.type, e.tId, e.host))
+        exception<BizException> { call, cause->
+            application.environment.log.error("BizException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
+            call.respond(UmiBox(cause.code, cause.msg, cause.type, cause.tId, cause.host))
         }
     }
 }

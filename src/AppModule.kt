@@ -19,32 +19,39 @@
 package com.github.rwsbillyang.ktorKit
 
 
-
 import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
 import com.github.rwsbillyang.ktorKit.cache.CaffeineCache
 import com.github.rwsbillyang.ktorKit.cache.ICache
-
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
-import io.ktor.features.*
+import com.github.rwsbillyang.ktorKit.db.DbConfig
+import com.github.rwsbillyang.ktorKit.db.MongoDataSource
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.locations.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.serialization.*
+import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.plugins.autohead.*
+import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.forwardedheaders.*
+import io.ktor.server.plugins.partialcontent.*
+import io.ktor.server.request.*
+import io.ktor.server.resources.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonBuilder
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
+import org.koin.ktor.plugin.Koin
 import org.slf4j.event.Level
 import java.time.Duration
+import java.util.zip.Deflater
+
 
 /**
  * @param modules 需要注入的实例的模块列表
@@ -57,28 +64,7 @@ class AppModule(
     val routing: (Routing.() -> Unit)? = null
 )
 
-class DbConfig(
-    val dbName: String,
-    val host: String = "127.0.0.1",
-    val port: Int = 27017
-) {
-    override fun equals(other: Any?): Boolean {
-        if (other == null)
-            return false
-        return if (other is DbConfig) {
-            other.dbName == dbName && other.host == host && other.port == port
-        } else
-            false
 
-    }
-
-    override fun hashCode(): Int {
-        var result = dbName.hashCode()
-        result = 31 * result + host.hashCode()
-        result = 31 * result + port
-        return result
-    }
-}
 
 private val _dbConfigSet = mutableSetOf<DbConfig>()
 private val _MyKoinModules = mutableListOf<Module>()
@@ -130,7 +116,7 @@ fun Application.defaultInstall(
         single<ICache> { CaffeineCache() }
         _dbConfigSet.forEach {
             val config = it
-            single(named(it.dbName)) { DataSource(config.dbName, config.host, config.port) }
+            single(named(it.dbName)) { MongoDataSource(config.dbName, config.host, config.port) }
         }
     }
 
@@ -138,11 +124,12 @@ fun Application.defaultInstall(
     install(Koin) {
         modules(_MyKoinModules)
     }
-    log.info("_MyKoinModules.size=${_MyKoinModules.size}")
+    //log.info("_MyKoinModules.size=${_MyKoinModules.size}")
 
-    install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
-    install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
-
+    install(AutoHeadResponse)
+    install(ForwardedHeaders)
+    //install(XForwardedHeader)
+    install(PartialContent)
 
     install(CallLogging) {
         level = Level.INFO
@@ -166,29 +153,48 @@ fun Application.defaultInstall(
     }
 
 
-    install(Locations)
+    //install(Locations)
+    install(Resources)
 
     if(enableJwt)
     {
         val jwtHelper: AbstractJwtHelper by inject()
         install(Authentication) {
             jwt {
-                config(jwtHelper)
+                verifier(jwtHelper.getVerifier()) //Configure a token verifier
+                this.realm = jwtHelper.realm
+                validate { credential -> jwtHelper.validate(credential) } // Validate JWT payload
             }
         }
     }
     if(enableWebSocket){
         install(WebSockets) {
+            contentConverter = KotlinxWebsocketSerializationConverter(Json)
+            extensions {
+                install(WebSocketDeflateExtension) {
+                    /**
+                     * Compression level to use for [java.util.zip.Deflater].
+                     */
+                    compressionLevel = Deflater.DEFAULT_COMPRESSION
+
+                    /**
+                     * Prevent to compress small outgoing frames.
+                     */
+                    compressIfBiggerThan(bytes = 4 * 1024)
+                }
+            }
+
             pingPeriod = Duration.ofSeconds(15)
             timeout = Duration.ofSeconds(200)
             maxFrameSize = Long.MAX_VALUE
             masking = false
         }
+
     }
 
     _MyRoutings.add {
         get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+            call.respondText("OK", contentType = ContentType.Text.Plain)
         }
         //convenience for test api
         get("/api/hello") {
@@ -196,7 +202,7 @@ fun Application.defaultInstall(
         }
     }
     _MyRoutings.add {
-        exceptionPage()
+        exceptionPage(application)
     }
     log.info("_MyRoutings.size=${_MyRoutings.size}")
 
@@ -218,4 +224,26 @@ fun Application.testModule(module: AppModule) {
         }), null), null)
     installModule(module)
     defaultInstall(true)
+}
+
+@Suppress("unused") // Referenced in application.conf
+@kotlin.jvm.JvmOverloads
+fun Application.simpleTestableModule(testing: Boolean = true) {
+//    class AuthenticationException : RuntimeException()
+//    class AuthorizationException : RuntimeException()
+//
+//    install(StatusPages) {
+//        exception<AuthenticationException> { call, cause ->
+//            call.respond(HttpStatusCode.Unauthorized)
+//        }
+//        exception<AuthorizationException> { call, cause ->
+//            call.respond(HttpStatusCode.Forbidden)
+//        }
+//    }
+
+    routing {
+        get("/") {
+            call.respondText("OK", contentType = ContentType.Text.Plain)
+        }
+    }
 }
