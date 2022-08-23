@@ -344,7 +344,7 @@ data class ArticleListParams(
    ```
    注意，需在启动时注入，可使用LifeCycle自动注入。
    
-   ## apiJson
+   ## apiBox
    kotlin-serialization和api响应payload的统一配置
    
    ## util

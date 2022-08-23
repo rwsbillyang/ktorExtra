@@ -19,6 +19,7 @@
 package com.github.rwsbillyang.ktorKit.rpc
 
 
+
 import com.alipay.sofa.rpc.common.RpcConstants
 import com.alipay.sofa.rpc.config.ConsumerConfig
 import com.alipay.sofa.rpc.config.RegistryConfig
@@ -26,8 +27,9 @@ import com.alipay.sofa.rpc.config.ServerConfig
 import com.alipay.sofa.rpc.context.RpcInternalContext
 import com.alipay.sofa.rpc.context.RpcInvokeContext
 import com.alipay.sofa.rpc.context.RpcRuntimeContext
-import com.github.rwsbillyang.ktorKit.LifeCycle
+
 import com.github.rwsbillyang.ktorKit.rpc.MyRpcConfig.SOFALocalRegistry
+import com.github.rwsbillyang.ktorKit.server.LifeCycle
 import io.ktor.server.application.*
 import org.koin.core.component.KoinComponent
 

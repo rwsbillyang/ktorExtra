@@ -1,7 +1,7 @@
 /*
  * Copyright © 2022 rwsbillyang@qq.com
  *
- * Written by rwsbillyang@qq.com at Beijing Time: 2022-06-03 16:19
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-08-15 22:38
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.github.rwsbillyang.ktorKit.apiJson
+package com.github.rwsbillyang.ktorKit.util
 
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder

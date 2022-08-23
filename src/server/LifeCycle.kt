@@ -1,7 +1,7 @@
 /*
  * Copyright © 2022 rwsbillyang@qq.com
  *
- * Written by rwsbillyang@qq.com at Beijing Time: 2022-01-21 17:23
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-08-15 22:34
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.github.rwsbillyang.ktorKit
+package com.github.rwsbillyang.ktorKit.server
 
 
 import io.ktor.server.application.*

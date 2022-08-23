@@ -1,7 +1,7 @@
 /*
  * Copyright © 2022 rwsbillyang@qq.com
  *
- * Written by rwsbillyang@qq.com at Beijing Time: 2022-01-30 20:44
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-08-15 22:34
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.github.rwsbillyang.ktorKit
+package com.github.rwsbillyang.ktorKit.server
 
-import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
+import com.github.rwsbillyang.ktorKit.ApiJson
 import io.ktor.websocket.*
 
 import kotlinx.serialization.Serializable
@@ -98,12 +98,12 @@ class WsJsonCmdHub : KoinComponent {
         for (frame in session.incoming) {
             when (frame) {
                 is Frame.Text -> {
-                    val request = ApiJson.json.decodeFromString<SocketRequest>(frame.readText())
+                    val request = ApiJson.serverSerializeJson.decodeFromString<SocketRequest>(frame.readText())
                     when(request.cmd)
                     {
                         SocketRequest.CMD_CONNECT -> {
                             val id = sessions.addSession(session)
-                            session.send(ApiJson.json.encodeToString(SocketResponse(id, SocketRequest.CMD_CONNECT, SocketResponse.MSG_READY)))
+                            session.send(ApiJson.serverSerializeJson.encodeToString(SocketResponse(id, SocketRequest.CMD_CONNECT, SocketResponse.MSG_READY)))
                         }
                         SocketRequest.CMD_CLOSE -> {
                            sessions.removeSession(request.id)
@@ -122,11 +122,11 @@ class WsJsonCmdHub : KoinComponent {
             val response = handler.onCmdRequest(request)
             if(response != null){
                 flag = true
-                session.send(ApiJson.json.encodeToString(response))
+                session.send(ApiJson.serverSerializeJson.encodeToString(response))
                 break
             }
         }
         if(!flag)
-            session.send(ApiJson.json.encodeToString(SocketResponse(request.id, request.cmd,SocketResponse.MSG_NO_HANDLER)))
+            session.send(ApiJson.serverSerializeJson.encodeToString(SocketResponse(request.id, request.cmd,SocketResponse.MSG_NO_HANDLER)))
     }
 }

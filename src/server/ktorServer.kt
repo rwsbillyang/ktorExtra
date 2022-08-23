@@ -1,7 +1,7 @@
 /*
  * Copyright © 2022 rwsbillyang@qq.com
  *
- * Written by rwsbillyang@qq.com at Beijing Time: 2022-01-21 17:23
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-08-15 22:34
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
-package com.github.rwsbillyang.ktorKit
+package com.github.rwsbillyang.ktorKit.server
 
 
 import com.auth0.jwt.exceptions.AlgorithmMismatchException
 import com.auth0.jwt.exceptions.InvalidClaimException
 import com.auth0.jwt.exceptions.TokenExpiredException
-import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
-import com.github.rwsbillyang.ktorKit.apiJson.Code
-import com.github.rwsbillyang.ktorKit.apiJson.DataBox
-import com.github.rwsbillyang.ktorKit.apiJson.UmiBox
+import com.github.rwsbillyang.ktorKit.ApiJson
+import com.github.rwsbillyang.ktorKit.apiBox.Code
+import com.github.rwsbillyang.ktorKit.apiBox.DataBox
+import com.github.rwsbillyang.ktorKit.apiBox.UmiBox
+
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -95,7 +96,7 @@ fun Routing.exceptionPage(application: Application)
 
 
 suspend inline fun <reified T> ApplicationCall.respondBox(box: DataBox<T>) =
-    respondText(ApiJson.json2.encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)
+    respondText(ApiJson.serverSerializeJson.encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)
 
 
 

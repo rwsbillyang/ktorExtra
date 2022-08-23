@@ -1,5 +1,6 @@
-package com.github.rwsbillyang.ktorKit.apiJson
+package com.github.rwsbillyang.ktorKit.apiBox
 
+import com.github.rwsbillyang.ktorKit.toObjectId
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString

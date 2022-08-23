@@ -1,47 +1,37 @@
-package com.github.rwsbillyang.ktorKit.apiJson
+/*
+ * Copyright © 2022 rwsbillyang@qq.com
+ *
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-08-15 22:35
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.github.rwsbillyang.ktorKit
 
 import com.github.rwsbillyang.ktorKit.util.toUtc
 import com.github.rwsbillyang.ktorKit.util.utcToLocalDateTime
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonBuilder
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import org.bson.types.ObjectId
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-
-object ApiJson {
-    val json = Json {
-        apiJsonBuilder()
-    }
-    val json2 = Json {
-        apiJsonBuilder()
-        serializersModule = SerializersModule {
-            contextual(ObjectIdBase64Serializer)
-            //contextual(LocalDateTimeAsStringSerializer)
-            contextual(LocalDateTimeAsLongSerializer)
-
-        }
-    }
-}
-
-fun JsonBuilder.apiJsonBuilder() {
-    encodeDefaults = false
-    ignoreUnknownKeys = true
-    classDiscriminator = "_class" //某些payload中拥有type字段，会冲突
-    //isLenient = true
-    allowSpecialFloatingPointValues = true
-    useArrayPolymorphism = false
-
-}
 
 @Deprecated("use ObjectIdBase64Serializer instead")
 @Serializer(forClass = ObjectId::class)

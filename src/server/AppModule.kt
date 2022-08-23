@@ -1,7 +1,7 @@
 /*
  * Copyright © 2022 rwsbillyang@qq.com
  *
- * Written by rwsbillyang@qq.com at Beijing Time: 2022-01-21 17:23
+ * Written by rwsbillyang@qq.com at Beijing Time: 2022-08-15 22:31
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package com.github.rwsbillyang.ktorKit
+package com.github.rwsbillyang.ktorKit.server
 
 
-import com.github.rwsbillyang.ktorKit.apiJson.ApiJson
+import com.github.rwsbillyang.ktorKit.ApiJson
 import com.github.rwsbillyang.ktorKit.cache.CaffeineCache
 import com.github.rwsbillyang.ktorKit.cache.ICache
 import com.github.rwsbillyang.ktorKit.db.DbConfig
@@ -147,7 +147,7 @@ fun Application.defaultInstall(
     //https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md
     install(ContentNegotiation) {
         json(
-            json = if (jsonBuilderAction == null) ApiJson.json2 else Json(ApiJson.json2, jsonBuilderAction),
+            json = if (jsonBuilderAction == null) ApiJson.serverSerializeJson else Json(ApiJson.serverSerializeJson, jsonBuilderAction),
             contentType = ContentType.Application.Json
         )
     }
@@ -228,19 +228,7 @@ fun Application.testModule(module: AppModule) {
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
-fun Application.simpleTestableModule(testing: Boolean = true) {
-//    class AuthenticationException : RuntimeException()
-//    class AuthorizationException : RuntimeException()
-//
-//    install(StatusPages) {
-//        exception<AuthenticationException> { call, cause ->
-//            call.respond(HttpStatusCode.Unauthorized)
-//        }
-//        exception<AuthorizationException> { call, cause ->
-//            call.respond(HttpStatusCode.Forbidden)
-//        }
-//    }
-
+fun Application.simpleTestableModule() {
     routing {
         get("/") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
