@@ -219,11 +219,20 @@ fun  doUploadRaw(
  * @param filename: such as: abc.jpg
  * @return 成功返回true，否则返回失败
  */
-fun doDownload(url: String, filepath: String, filename: String) = runBlocking {
+fun doDownload(url: String, filepath: String, filename: String):Boolean = runBlocking {
     DefaultClient.prepareGet(url).execute { httpResponse ->
         if (httpResponse.status.isSuccess()) {
             try {
                 val channel: ByteReadChannel = httpResponse.body()
+
+                val directory = File(filepath)
+                if(!directory.exists()){
+                    if(directory.mkdirs()){
+                        println("WARN: create directory fail: $filepath")
+                        return@execute false
+                    }
+                }
+
                 val file = File("$filepath/$filename")
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
@@ -234,12 +243,13 @@ fun doDownload(url: String, filepath: String, filename: String) = runBlocking {
                     }
                 }
                 //println("A file saved to ${file.path}")
-                true
+                return@execute true
             } catch (e: Exception) {
                 println("save $filename fail! Exception: ${e.message}")
-                false
+                return@execute false
             }
-        } else false
+        }
+        return@execute false
     }
 }
 
