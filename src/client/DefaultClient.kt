@@ -29,7 +29,9 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -98,7 +100,6 @@ val DefaultClient: HttpClient by lazy {
 }
 
 
-
 /**
  * 多数情况下使用默认的client即可,亦可定制自己的client
  * */
@@ -141,7 +142,7 @@ inline fun <reified R> doUpload(
     fileKey: String = "media",
     contentType: String = "image/*",
     boundary: String = "fileBoundary"
-):R = runBlocking {
+): R = runBlocking {
     //https://ktor.io/docs/request.html#upload_file
     withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
         DefaultClient.post(url) {
@@ -172,7 +173,7 @@ inline fun <reified R> doUpload(
     formData: Map<String, String>? = null,
     fileKey: String = "media",
     contentType: String = "image/*"
-):R = runBlocking {
+): R = runBlocking {
     //https://ktor.io/docs/request.html#upload_file
     withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
         val file = File(filePath)
@@ -188,7 +189,8 @@ inline fun <reified R> doUpload(
         ).body()
     }
 }
-fun  doUploadRaw(
+
+fun doUploadRaw(
     url: String,
     filePath: String,
     formData: Map<String, String>? = null,
@@ -211,46 +213,72 @@ fun  doUploadRaw(
     }
 }
 
+
 /**
  * 根据url下载文件，保存到filepath中
  *
  * @param url
  * @param filepath such as: ./qrcode/${appId}
  * @param filename: such as: abc.jpg
- * @return 成功返回true，否则返回失败
+ * @return
  */
-fun doDownload(url: String, filepath: String, filename: String):Boolean = runBlocking {
-    DefaultClient.prepareGet(url).execute { httpResponse ->
-        if (httpResponse.status.isSuccess()) {
-            try {
-                val channel: ByteReadChannel = httpResponse.body()
-
-                val directory = File(filepath)
-                if(!directory.exists()){
-                    if(directory.mkdirs()){
-                        println("WARN: create directory fail: $filepath")
-                        return@execute false
-                    }
-                }
-
-                val file = File("$filepath/$filename")
-                while (!channel.isClosedForRead) {
-                    val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                    while (!packet.isEmpty) {
-                        val bytes = packet.readBytes()
-                        file.appendBytes(bytes)
-                        //println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
-                    }
-                }
-                //println("A file saved to ${file.path}")
-                return@execute true
-            } catch (e: Exception) {
-                println("save $filename fail! Exception: ${e.message}")
-                return@execute false
-            }
+fun doDownload(url: String, filepath: String, filename: String) = runBlocking {
+    val response: HttpResponse = DefaultClient.get(url)
+    if (response.status.isSuccess()) {
+        val content = ByteArrayContent(response.readBytes())
+        val path = File(filepath)
+        if (!path.exists()) {
+            path.mkdirs()
         }
-        return@execute false
+        val file = File("$filepath/$filename")
+        file.writeBytes(content.bytes())
+        true
+    } else {
+        println("fail to download from $url, status=${response.status.value}")
+        false
     }
 }
+
+/**
+ * 根据url下载文件，保存到filepath中
+ * bug: cannot return, timeout
+ * @param url
+ * @param filepath such as: ./qrcode/${appId}
+ * @param filename: such as: abc.jpg
+ * @return 成功返回true，否则返回失败
+ */
+//fun doDownload(url: String, filepath: String, filename: String): Boolean = runBlocking {
+//    DefaultClient.prepareGet(url).execute { httpResponse ->
+//        if (httpResponse.status.isSuccess()) {
+//            try {
+//                val channel: ByteReadChannel = httpResponse.body()
+//
+//                val directory = File(filepath)
+//                if (!directory.exists()) {
+//                    if (directory.mkdirs()) {
+//                        println("WARN: create directory fail: $filepath")
+//                        return@execute false
+//                    }
+//                }
+//
+//                val file = File("$filepath/$filename")
+//                while (!channel.isClosedForRead) {
+//                    val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+//                    while (!packet.isEmpty) {
+//                        val bytes = packet.readBytes()
+//                        file.appendBytes(bytes)
+//                        //println("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
+//                    }
+//                }
+//                //println("A file saved to ${file.path}")
+//                return@execute true
+//            } catch (e: Exception) {
+//                println("save $filename fail! Exception: ${e.message}")
+//                return@execute false
+//            }
+//        }
+//        return@execute false
+//    }
+//}
 
 
