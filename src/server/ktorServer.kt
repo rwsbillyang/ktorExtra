@@ -23,9 +23,8 @@ import com.auth0.jwt.exceptions.AlgorithmMismatchException
 import com.auth0.jwt.exceptions.InvalidClaimException
 import com.auth0.jwt.exceptions.TokenExpiredException
 import com.github.rwsbillyang.ktorKit.ApiJson
-import com.github.rwsbillyang.ktorKit.apiBox.Code
+
 import com.github.rwsbillyang.ktorKit.apiBox.DataBox
-import com.github.rwsbillyang.ktorKit.apiBox.UmiBox
 
 
 import io.ktor.http.*
@@ -48,8 +47,8 @@ class BizException(
 ) : RuntimeException(cause)
 {
     companion object{
-        fun ko(msg: String, type: Int? = UmiBox.WARN_MESSAGE, tId: String? = null, host: String? = null) = BizException(
-            Code.KO,
+        fun ko(msg: String, type: Int? = DataBox.TYPE_WARN_MESSAGE, tId: String? = null, host: String? = null) = BizException(
+            DataBox.CODE_KO,
             msg,
             type,
             tId,
@@ -73,7 +72,7 @@ fun Routing.exceptionPage(application: Application)
 
         exception<TokenExpiredException> { call, cause ->
             application.environment.log.error("TokenExpiredException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
-            call.respondBox(DataBox<Unit>(Code.TokenExpired,"登录过期，请点击右上角，退出登录后，重新进入"))
+            call.respondBox(DataBox<Unit>(DataBox.CODE_TokenExpired,"登录过期，请点击右上角，退出登录后，重新进入"))
         }
         exception<InvalidClaimException> { call, cause ->
             application.environment.log.error("InvalidClaimException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
@@ -89,7 +88,7 @@ fun Routing.exceptionPage(application: Application)
         }
         exception<BizException> { call, cause->
             application.environment.log.error("BizException: cause=$cause, ${call.request.httpMethod.value} ${call.request.path()} ${call.authHeaders(headers)}")
-            call.respond(UmiBox(cause.code, cause.msg, cause.type, cause.tId, cause.host))
+            call.respond(DataBox(cause.code, cause.msg, cause.type, null,cause.tId, cause.host))
         }
     }
 }
@@ -97,10 +96,13 @@ fun Routing.exceptionPage(application: Application)
 
 suspend inline fun <reified T> ApplicationCall.respondBox(box: DataBox<T>) =
     respondText(ApiJson.serverSerializeJson.encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)
+suspend inline fun <reified T> ApplicationCall.respondBoxOK(data: T) =
+    respondText(ApiJson.serverSerializeJson.encodeToString(DataBox.ok(data)), ContentType.Application.Json, HttpStatusCode.OK)
 
+suspend inline fun ApplicationCall.respondBoxKO(msg: String) =
+    respondText(ApiJson.serverSerializeJson.encodeToString(DataBox.ko<Unit>(msg)), ContentType.Application.Json, HttpStatusCode.OK)
 
-
-
-
+suspend inline fun ApplicationCall.respondBoxJsonText(json: String) =
+    respondText(json, ContentType.Application.Json, HttpStatusCode.OK)
 
 

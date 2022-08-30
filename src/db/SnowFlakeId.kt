@@ -18,14 +18,10 @@
 
 package com.github.rwsbillyang.ktorKit.db
 
-import org.koin.core.component.KoinComponent
-
-
 /**
  * Twitter_Snowflake<br></br>
  *
- * @param workerId 工作ID (0~31)
- * @param dataCenterId 数据中心ID (0~31)
+
  *
  * SnowFlake的结构如下(每部分用-分开):<br></br>
  * 0 - 0000000000 0000000000 0000000000 0000000000 0 - 00000 - 00000 - 000000000000 <br></br>
@@ -37,7 +33,29 @@ import org.koin.core.component.KoinComponent
  * 加起来刚好64位，为一个Long型。<br></br>
  * SnowFlake的优点是，整体上按照时间自增排序，并且整个分布式系统内不会产生ID碰撞(由数据中心ID和机器ID作区分)，并且效率较高，经测试，SnowFlake每秒能够产生26万ID左右。
  */
-class SnowflakeIdWorker(workerId: Long = 0L, dataCenterId: Long = 0L): KoinComponent {
+object SnowflakeId {
+    /** 工作机器ID(0~31)  */
+    private var _workerId: Long = 0L
+
+    /** 数据中心ID(0~31)  */
+    private var _datacenterId: Long = 0L
+
+    /**
+     * @param workerId 工作ID (0~31)
+     * @param dataCenterId 数据中心ID (0~31)
+     * */
+    fun initialize(workerId: Long, dataCenterId: Long = 0L){
+        require(!(workerId > maxWorkerId || workerId < 0)) {
+            "worker Id can't be greater than $maxWorkerId or less than 0"
+        }
+        require(!(dataCenterId > maxDatacenterId || dataCenterId < 0)) {
+            "datacenter Id can't be greater than $maxDatacenterId or less than 0"
+        }
+        _workerId = workerId
+        _datacenterId = dataCenterId
+    }
+
+
 
     /** 开始时间截 (2015-01-01)  */
     private val epoch = 1420041600000L
@@ -69,11 +87,7 @@ class SnowflakeIdWorker(workerId: Long = 0L, dataCenterId: Long = 0L): KoinCompo
     /** 生成序列的掩码，这里为4095 (0b111111111111=0xfff=4095)  */
     private val sequenceMask = -1L xor (-1L shl sequenceBits.toInt())
 
-    /** 工作机器ID(0~31)  */
-    private val workerId: Long
 
-    /** 数据中心ID(0~31)  */
-    private val datacenterId: Long
 
     /** 毫秒内序列(0~4095)  */
     private var sequence = 0L
@@ -82,11 +96,11 @@ class SnowflakeIdWorker(workerId: Long = 0L, dataCenterId: Long = 0L): KoinCompo
     private var lastTimestamp = -1L
     // ==============================Methods==========================================
     /**
-     * 获得下一个ID (该方法是线程安全的)
+     * 获得一个ID (该方法是线程安全的)
      * @return SnowflakeId
      */
     @Synchronized
-    fun nextId(): Long {
+    fun getId(): Long {
         var timestamp = System.currentTimeMillis()
 
         //如果当前时间小于上一次ID生成的时间戳，说明系统时钟回退过这个时候应当抛出异常
@@ -113,8 +127,8 @@ class SnowflakeIdWorker(workerId: Long = 0L, dataCenterId: Long = 0L): KoinCompo
 
         //移位并通过或运算拼到一起组成64位的ID
         return (timestamp - epoch shl timestampLeftShift.toInt() //
-                or (datacenterId shl datacenterIdShift.toInt()) //
-                or (workerId shl workerIdShift.toInt()) //
+                or (_datacenterId shl datacenterIdShift.toInt()) //
+                or (_workerId shl workerIdShift.toInt()) //
                 or sequence)
     }
 
@@ -123,34 +137,19 @@ class SnowflakeIdWorker(workerId: Long = 0L, dataCenterId: Long = 0L): KoinCompo
      * @param lastTimestamp 上次生成ID的时间截
      * @return 当前时间戳
      */
-    protected fun tilNextMillis(lastTimestamp: Long): Long {
+    private fun tilNextMillis(lastTimestamp: Long): Long {
         var timestamp = System.currentTimeMillis()
         while (timestamp <= lastTimestamp) {
             timestamp = System.currentTimeMillis()
         }
         return timestamp
     }
-
-
-    //==============================Constructors=====================================
-
-    init {
-        require(!(workerId > maxWorkerId || workerId < 0)) {
-            "worker Id can't be greater than $maxWorkerId or less than 0"
-        }
-        require(!(dataCenterId > maxDatacenterId || dataCenterId < 0)) {
-            "datacenter Id can't be greater than $maxDatacenterId or less than 0"
-        }
-        this.workerId = workerId
-        this.datacenterId = dataCenterId
-    }
 }
 
-fun main(args: Array<String>) {
-    val idWorker = SnowflakeIdWorker()
-    for (i in 0..9) {
-        val id = idWorker.nextId()
-        println(java.lang.Long.toBinaryString(id))
-        println(id)
-    }
-}
+//fun main(args: Array<String>) {
+//    for (i in 0..9) {
+//        val id = SnowflakeId.nextId()
+//        println(java.lang.Long.toBinaryString(id))
+//        println(id)
+//    }
+//}

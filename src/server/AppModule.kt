@@ -23,7 +23,9 @@ import com.github.rwsbillyang.ktorKit.ApiJson
 import com.github.rwsbillyang.ktorKit.cache.CaffeineCache
 import com.github.rwsbillyang.ktorKit.cache.ICache
 import com.github.rwsbillyang.ktorKit.db.DbConfig
+import com.github.rwsbillyang.ktorKit.db.DbType
 import com.github.rwsbillyang.ktorKit.db.MongoDataSource
+import com.github.rwsbillyang.ktorKit.db.SqlDataSource
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
@@ -77,23 +79,31 @@ private val _MyRoutings = mutableListOf<Routing.() -> Unit>()
  * （3）自动注入了DataSource（以数据库名称作为qualifier）
  * @param app 待安装的module
  * @param dbName 数据库名称，不指定则使用AppModule中的默认名称
+ * @param dbType DbType.NOSQL, DbType.SQL
  * @param host 数据库host 默认127.0.0.1
- * @param port 数据库port 默认27017
+ * @param port 数据库port 对于NOSQL MongoDB，默认27017， SQL之MySQL为3306
+ * @param userName 连接数据的用户名，mysql通常需要赋值
+ * @param pwd 连接数据的密码，mysql通常需要赋值
  * */
 fun Application.installModule(
     app: AppModule,
     dbName: String? = null,
+    dbType: DbType = DbType.NOSQL,
     host: String = "127.0.0.1",
-    port: Int = 27017
+    port: Int = when(dbType){
+        DbType.NOSQL -> 27017
+        DbType.SQL -> 3306
+    },
+    userName: String? = null,
+    pwd: String? = null
 ) {
     dbName?.let { app.dbName = it }
     app.dbName?.let {
-        _dbConfigSet.add(DbConfig(it, host, port))
+        _dbConfigSet.add(DbConfig(it, dbType, host, port, userName, pwd))
     }
 
     app.modules?.let { _MyKoinModules.plusAssign(it) }
     app.routing?.let { _MyRoutings.plusAssign(it) }
-
 }
 
 
@@ -110,20 +120,26 @@ fun Application.defaultInstall(
     testing: Boolean = false,
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null,
     enableWebSocket: Boolean = false,
-    logHeaders: List<String>? = null //"X-Auth-uId","X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization"
+    logHeaders: List<String>? = null, //"X-Auth-uId","X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization"
+    cache: ICache = CaffeineCache()
 ) {
     val module = module {
-        single<ICache> { CaffeineCache() }
+        single<ICache> { cache }
         _dbConfigSet.forEach {
             val config = it
-            single(named(it.dbName)) { MongoDataSource(config.dbName, config.host, config.port) }
+            when(it.dbType){
+                DbType.NOSQL -> single(named(it.dbName)) { MongoDataSource(config.dbName, config.host, config.port) }
+                DbType.SQL -> single(named(it.dbName)) { SqlDataSource(config.dbName, config.host, config.port, config.userName, config.pwd) }
+            }
         }
+        _dbConfigSet.clear()
     }
 
     _MyKoinModules.add(0, module)
     install(Koin) {
         modules(_MyKoinModules)
     }
+    _MyKoinModules.clear()
     //log.info("_MyKoinModules.size=${_MyKoinModules.size}")
 
     install(AutoHeadResponse)
@@ -211,6 +227,7 @@ fun Application.defaultInstall(
             it()
         }
     }
+    _MyRoutings.clear()
 }
 
 
