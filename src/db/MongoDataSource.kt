@@ -28,29 +28,6 @@ import org.litote.kmongo.serialization.configuration
 import com.github.jershell.kbson.Configuration
 import org.koin.core.component.KoinComponent
 
-class DbConfig(
-    val dbName: String,
-    val host: String = "127.0.0.1",
-    val port: Int = 27017
-) {
-    override fun equals(other: Any?): Boolean {
-        if (other == null)
-            return false
-        return if (other is DbConfig) {
-            other.dbName == dbName && other.host == host && other.port == port
-        } else
-            false
-
-    }
-
-    override fun hashCode(): Int {
-        var result = dbName.hashCode()
-        result = 31 * result + host.hashCode()
-        result = 31 * result + port
-        return result
-    }
-}
-
 //http://litote.org/kmongo/
 class MongoDataSource(dbName: String, host: String = "127.0.0.1", port: Int = 27017) : KoinComponent {
     val mongoDb: CoroutineDatabase

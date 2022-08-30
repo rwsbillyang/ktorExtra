@@ -20,6 +20,7 @@ package com.github.rwsbillyang.ktorKit.db
 
 import com.zaxxer.hikari.HikariConfig
 
+
 //
 /**
  * 官方推荐的优化配置
@@ -43,3 +44,5 @@ fun optimizedHikariConfig(dbName: String, userName: String = "root", pwd: String
     addDataSourceProperty("elideSetAutoCommits", "true")
     addDataSourceProperty("maintainTimeStats", "false")
 }
+
+
