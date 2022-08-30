@@ -209,7 +209,7 @@ class ArticleService(cache: ICache) : CacheService(cache){
    
    ## 列表分页查询
 
-定义一个包括所有查询参数的data类，继承自IUmiListParams，controller中可调用checkValid检查参数合法性：
+定义一个包括所有查询参数的data类，继承自IUmiPaginationParams，controller中可调用checkValid检查参数合法性：
 ```kotlin
 /**
  * 列表过滤查询
@@ -236,8 +236,8 @@ data class ArticleListParams(
         val keyword: String? = null,
         val lastId: String? = null,
         val outline: Int = 1 //不同的api
-): IUmiListParams {
-    fun toFilter(): Bson {
+): IUmiPaginationParams {
+    override fun toFilter(): Bson {
         val idFilter = _id?.let { Article::_id eq it.toObjectId() }
         val corpIdFilter = corpId?.let { Article::corpId eq it }
 

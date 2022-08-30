@@ -143,7 +143,7 @@ class IntIds(val key: List<Int>)
  * 示例：{"key":["96","95","94"]}
  * */
 @Serializable
- class StrIds(val key: List<String>)
+class StrIds(val key: List<String>)
 
 @Serializable
 class BatchOperationParams(
