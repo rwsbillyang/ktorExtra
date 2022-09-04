@@ -69,7 +69,7 @@ interface IUmiPaginationParams{
  * */
 @Serializable
 class UmiPagination(
-     var pageSize: Int = 20,
+     var pageSize: Int = 10,
      var current: Int = 1,
      var sKey: String = "_id", //sortKey
      var sort: Int = Sort.DESC, //1用于升序，而-1用于降序
@@ -85,11 +85,11 @@ class UmiPagination(
 
     /**
      * setup mongodb bson for pagination
-     * @param lastId will be removed in the future. new version: ignore the parameter. legacy: pass lastId in listSearchParams,
+     * new version: ignore the parameter. legacy: pass lastId in listSearchParams,
      * new version, lastId is in UmiPagination, legacy version it's in listSearchParams
      * @return mongodb bson
      * */
-    fun lastIdFilter(lastId: String? = this.lastId): Bson? {
+    fun lastIdFilter(): Bson? {
         if(lastId == null) return null
         val s = if(sort == Sort.DESC) "\$lt" else "\$gt"
         return when(sKeyType){
