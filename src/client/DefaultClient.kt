@@ -44,12 +44,13 @@ import java.io.File
 val DefaultClient: HttpClient by lazy {
     HttpClient(CIO) {
         install(ContentNegotiation) {
-            json(ApiJson.clientApiJson)
+            json(ApiJson.clientApiJson, ContentType.Application.Json)
+            json(ApiJson.clientApiJson, ContentType.Text.Plain) //fix NoTransformationFoundException when response is  Content-Type: text/plain
         }
         defaultRequest { // this: HttpRequestBuilder ->
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            //accept(ContentType.Text.Plain)
+            accept(ContentType.Text.Plain)
         }
 
         install(HttpCache)
