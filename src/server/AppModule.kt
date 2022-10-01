@@ -78,24 +78,25 @@ private val _MyRoutings = mutableListOf<Routing.() -> Unit>()
  * （2）将routing配置加入私有全局列表，便于后面执行，添加endpoint
  * （3）自动注入了DataSource（以数据库名称作为qualifier）
  * @param app 待安装的module
- * @param dbName 数据库名称，不指定则使用AppModule中的默认名称
  * @param dbType DbType.NOSQL, DbType.SQL
- * @param host 数据库host 默认127.0.0.1
- * @param port 数据库port 对于NOSQL MongoDB，默认27017， SQL之MySQL为3306
  * @param userName 连接数据的用户名，mysql通常需要赋值
  * @param pwd 连接数据的密码，mysql通常需要赋值
+ * @param dbName 数据库名称，不指定则使用AppModule中的默认名称
+ * @param host 数据库host 默认127.0.0.1
+ * @param port 数据库port 对于NOSQL MongoDB，默认27017， SQL之MySQL为3306
+
  * */
 fun Application.installModule(
     app: AppModule,
     dbName: String? = null,
     dbType: DbType = DbType.NOSQL,
+    userName: String? = null,
+    pwd: String? = null,
     host: String = "127.0.0.1",
     port: Int = when(dbType){
         DbType.NOSQL -> 27017
         DbType.SQL -> 3306
-    },
-    userName: String? = null,
-    pwd: String? = null
+    }
 ) {
     dbName?.let { app.dbName = it }
     app.dbName?.let {
@@ -233,12 +234,12 @@ fun Application.defaultInstall(
 
 fun Application.testModule(module: AppModule) {
     val app = this
-    installModule( AppModule(
+    installModule(AppModule(
         listOf(module(createdAtStart = true) {
             single<UserInfoJwtHelper> { TestJwtHelper() }
             single<AbstractJwtHelper> { DevJwtHelper() }
             single<Application> { app }
-        }), null), null)
+        }), null))
     installModule(module)
     defaultInstall(true)
 }

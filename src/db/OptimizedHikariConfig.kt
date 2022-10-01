@@ -29,7 +29,7 @@ import com.zaxxer.hikari.HikariConfig
 fun optimizedHikariConfig(dbName: String, userName: String = "root", pwd: String? = null, host: String ="localhost", port: Int = 3306)
 = HikariConfig().apply {
     driverClassName = "com.mysql.jdbc.Driver"
-    jdbcUrl = "jdbc:mysql://$host:$port/$dbName?useSSL=false"
+    jdbcUrl = "jdbc:mysql://$host:$port/$dbName?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
     username = userName
     if(pwd != null) password = pwd
 

@@ -128,6 +128,21 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
     }
 
     /**
+     * save(insert or update depends on isInsert) a record，use cache if cacheKey is not null
+     * @param meta Meta，refer to Komapper @KomapperEntity
+     * @param list entity data list
+     * @param database if null, use overridden db in subclass
+     * @return the inserted/updated record
+     * */
+    fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> batchInsert(
+        meta: META,
+        list: List<ENTITY>,
+        database: JdbcDatabase = db
+    ) = database.runQuery {
+        QueryDsl.insert(meta).multiple(list)
+    }
+
+    /**
      * update values of some fields，evict cache if cacheKey or cacheKeys is not null
      * @param meta Meta，refer to Komapper @KomapperEntity
      * @param setValuesDelDeclaration set value: eg: {Meta.goods.status eq EnumStatus.Deleted}
