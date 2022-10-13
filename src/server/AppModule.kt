@@ -145,7 +145,7 @@ fun Application.defaultInstall(
 
     install(AutoHeadResponse)
     install(ForwardedHeaders)
-    //install(XForwardedHeader)
+    install(XForwardedHeaders)
     install(PartialContent)
 
     install(CallLogging) {

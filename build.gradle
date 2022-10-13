@@ -4,6 +4,7 @@ buildscript {
         maven{ url 'https://maven.aliyun.com/nexus/content/groups/public/'}
         mavenCentral()
         maven { url 'https://jitpack.io' }
+        maven { url "https://maven.pkg.jetbrains.space/public/p/ktor/eap"}
         //jcenter()
         google()
     }
@@ -105,7 +106,7 @@ dependencies {
 
     //commons-codec 1.13 会报 base64异常，1.10，1.15没有问题
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
-    //implementation("commons-codec:commons-codec:1.15")
+    implementation("commons-codec:commons-codec:1.15")
 
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     //compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
@@ -139,7 +140,7 @@ dependencies {
     //send pwd to user
     compileOnly ('com.sun.mail:javax.mail:1.6.2')
 
-    compileOnly ('com.alipay.sofa:sofa-rpc-all:5.8.5')
+    //compileOnly ('com.alipay.sofa:sofa-rpc-all:5.8.5')
 
 }
 publishing {

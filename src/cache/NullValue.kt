@@ -31,6 +31,6 @@ class NullValue{
     }
 
     override fun toString(): String {
-        return "null"
+        return ""
     }
 }
