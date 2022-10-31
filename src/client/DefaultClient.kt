@@ -231,12 +231,13 @@ fun doDownload(url: String, filepath: String, filename: String) = runBlocking {
         if (!path.exists()) {
             path.mkdirs()
         }
-        val file = File("$filepath/$filename")
+        val relative = "$filepath/$filename"
+        val file = File(relative)
         file.writeBytes(content.bytes())
-        true
+        relative
     } else {
         println("fail to download from $url, status=${response.status.value}")
-        false
+        null
     }
 }
 

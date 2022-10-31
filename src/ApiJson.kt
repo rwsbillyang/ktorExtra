@@ -59,7 +59,13 @@ object ApiJson {
     val serverSerializeJson = Json {
         apiJsonBuilder()
         serializersModule = SerializersModule {
-            contextual(ObjectIdBase64Serializer)
+            try{
+                Class.forName("org.bson.types.ObjectId", false, javaClass.classLoader)
+                contextual(ObjectIdBase64Serializer)
+            }catch (e: Exception){
+                System.err.println("no bson dependency, ignore ObjectIdBase64Serializer")
+            }
+
             //contextual(LocalDateTimeAsStringSerializer)
             contextual(LocalDateTimeAsLongSerializer)
         }
