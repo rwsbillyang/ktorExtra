@@ -36,8 +36,9 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * @param cacheKey cache key，cache it if not null
      * @return the inserted/updated record
      * */
-    fun <T: Any> findOne(col: CoroutineCollection<T>, id: String, cacheKey: String? = null) = runBlocking{
-        col.findOneById(id.toObjectId())?.also { if (cacheKey != null) cache.put(cacheKey, it) }
+    fun <T: Any> findOne(col: CoroutineCollection<T>, id: String, toObejectId: Boolean = true, cacheKey: String? = null) = runBlocking{
+        val _id = if(toObejectId) id.toObjectId() else id
+        col.findOneById(_id)?.also { if (cacheKey != null) cache.put(cacheKey, it) }
     }
 
 
@@ -104,10 +105,11 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * */
     fun <T: Any> deleteOne(
         col: CoroutineCollection<T>,
-        id: String,
+        id: String, toObejectId: Boolean = true,
         cacheKey: String? = null,
     ) = runBlocking {
-        val count = col.deleteOneById(id.toObjectId()).deletedCount
+        val _id = if(toObejectId) id.toObjectId() else id
+        val count = col.deleteOneById(_id).deletedCount
         if (cacheKey != null) cache.evict(cacheKey)
         count
     }
@@ -122,10 +124,13 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * */
     fun <T: Any> deleteMulti(
         col: CoroutineCollection<T>,
-        ids: List<String>,
+        ids: List<String>, toObejectId: Boolean = true,
         cacheKeyPrefix: String? = null,
     ) = runBlocking {
-        val jsonIds = ids.joinToString(",", "[", "]") { "ObjectId(\"${it.toObjectId().toHexString()}" }
+        val jsonIds = if(toObejectId)
+            ids.joinToString(",", "[", "]") { "ObjectId(\"${it.toObjectId().toHexString()}" }
+        else
+            ids.joinToString(",", "[", "]")
 
         val count = col.deleteMany("{ _id: { \$in: $jsonIds } }").deletedCount //{ field: { $in: [<value1>, <value2>, ... <valueN> ] } }
 

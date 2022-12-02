@@ -122,7 +122,8 @@ fun Application.defaultInstall(
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null,
     enableWebSocket: Boolean = false,
     logHeaders: List<String>? = null, //"X-Auth-uId","X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization"
-    cache: ICache = CaffeineCache()
+    cache: ICache = CaffeineCache(),
+    blockFunc: ((app: Application)->Unit)?= null //用户自定义进行一些操作
 ) {
     val module = module {
         single<ICache> { cache }
@@ -208,6 +209,8 @@ fun Application.defaultInstall(
         }
 
     }
+
+    if(blockFunc != null) blockFunc(this)
 
     _MyRoutings.add {
         get("/") {

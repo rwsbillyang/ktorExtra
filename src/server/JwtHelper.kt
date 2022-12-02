@@ -40,20 +40,20 @@ import java.util.*
  * user模块中的Account._id或企业微信中的成员id(userId)
  * */
 val ApplicationCall.uId
-    get() = this.request.headers["X-Auth-uId"]
-
-//openId
-val ApplicationCall.oId
-    get() = this.request.headers["X-Auth-oId"]
-
+    get() = this.request.headers["X-Auth-uId"] // app account Id
+val ApplicationCall.sysId
+    get() = this.request.headers["X-Auth-sysId"]
+val ApplicationCall.appId
+    get() = this.request.headers["X-Auth-appId"]
+val ApplicationCall.openId
+    get() = this.request.headers["X-Auth-openId"]
 val ApplicationCall.unionId
-    get() = this.request.headers["X-Auth-unId"]
-
-val ApplicationCall.corpId
-    get() = this.request.headers["X-Auth-CorpId"]
+    get() = this.request.headers["X-Auth-unionId"]
 
 val ApplicationCall.token
     get() = this.request.headers["Authorization"]?.substringAfter("Bearer")?.trim()
+
+//openId
 
 val ApplicationCall.roles
     get() = this.authentication.principal<JWTPrincipal>()?.payload?.getClaim(AuthUserInfo.KEY_ROLE)?.asString()?.split(",")
@@ -69,6 +69,9 @@ fun ApplicationCall.authHeaders(headers: List<String>): String {
     val auths = headers.joinToString("\n") { "$it:${request.header(it)}" }
     return "\nroles: ${this.roles}\n"+auths
 }
+
+
+
 /**
  * 只可访问一次
  * UserInfoJwtHelper中被设置
@@ -342,7 +345,10 @@ abstract class UserInfoJwtHelper(
         }
 
         val uId: String = uIdClaim.asString()
-        if(call.uId != uId){
+        //当为app登录时，call.uId为app account id,非空，call.sysId可能空（未绑定）也可能不空（已绑定），token中的uId为app account id
+        //当为webAdmin登录时，call.uId为空，call.sysId非空,token中的uId为 sysId
+        val idInCall = call.uId?:call.sysId
+        if(idInCall != uId){
             log.warn("uId not set in X-Auth-uId? should be same as one in token")
             return false
         }
