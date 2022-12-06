@@ -18,7 +18,6 @@
 
 package com.github.rwsbillyang.ktorKit.db
 
-import com.github.rwsbillyang.ktorKit.apiBox.UmiPagination
 import com.github.rwsbillyang.ktorKit.cache.CacheService
 import com.github.rwsbillyang.ktorKit.cache.ICache
 import org.komapper.core.dsl.QueryDsl
@@ -26,8 +25,25 @@ import org.komapper.core.dsl.expression.AssignmentDeclaration
 import org.komapper.core.dsl.expression.SortExpression
 import org.komapper.core.dsl.expression.WhereDeclaration
 import org.komapper.core.dsl.metamodel.EntityMetamodel
+import org.komapper.core.dsl.operator.and
 import org.komapper.core.dsl.query.singleOrNull
 import org.komapper.jdbc.JdbcDatabase
+
+class SqlPagination(
+    val sort: SortExpression,
+    val pageSize: Int = 10,
+    val offset: Int = 0 //(pagination.current - 1) * pagination.pageSize
+){
+    var where: WhereDeclaration? = null
+    fun addWhere(vararg arrays: WhereDeclaration?):SqlPagination
+    {
+        val list = arrays.filterNotNull()
+        if(list.isNotEmpty()){
+            where = list.reduce{e1, e2 -> e1.and(e2)}
+        }
+        return this
+    }
+}
 
 /**
  * basic CRUD service based on Komapper（https://github.com/komapper/komapper）
@@ -83,16 +99,12 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
 
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> findPage(
         meta: META,
-        sortExpression: SortExpression,
-        pagination: UmiPagination,
-        database: JdbcDatabase = db,
-        w: WhereDeclaration) = database.runQuery{
-        if(pagination.lastId == null)
-            QueryDsl.from(meta).where(w).orderBy(sortExpression).offset((pagination.current - 1) * pagination.pageSize).limit(pagination.pageSize)
-        else{
-            QueryDsl.from(meta).where(w).orderBy(sortExpression).limit(pagination.pageSize)
-        }
-
+        pagination: SqlPagination,
+        database: JdbcDatabase = db) = database.runQuery{
+        (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+            .orderBy(pagination.sort)
+            .offset(pagination.offset)
+            .limit(pagination.pageSize)
     }
 
     /**
@@ -160,10 +172,10 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> updateValues(
         meta: META,
         setValuesDelDeclaration: AssignmentDeclaration<ENTITY, META>,
+        w: WhereDeclaration,
         cacheKey: String? = null,
         cacheKeys: List<String>? = null,
-        database: JdbcDatabase = db,
-        w: WhereDeclaration
+        database: JdbcDatabase = db
     ) =
         database.runQuery {
             QueryDsl.update(meta).set(setValuesDelDeclaration).where(w)
@@ -184,10 +196,10 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
      * */
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> delete(
         meta: META,
+        w: WhereDeclaration,
         cacheKey: String? = null,
         cacheKeys: List<String>? = null,
-        database: JdbcDatabase = db,
-        w: WhereDeclaration
+        database: JdbcDatabase = db
     ) =
         database.runQuery {
             QueryDsl.delete(meta).where(w)

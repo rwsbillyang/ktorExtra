@@ -1,5 +1,6 @@
 package com.github.rwsbillyang.ktorKit.apiBox
 
+import com.github.rwsbillyang.ktorKit.db.SqlPagination
 import com.github.rwsbillyang.ktorKit.toObjectId
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -46,9 +47,9 @@ interface IUmiPaginationParams{
         TODO("Not Implement")
     }
     /**
-     * convert search params to WhereDeclaration(not include UmiPagination.lastIdWhereDeclaration) for mysql/komapper
+     * convert search params to SqlPagination for mysql/komapper
      * */
-    fun toWhereDeclaration(): WhereDeclaration{
+    fun toSqlPagination(): SqlPagination{
         TODO("Not Implement")
     }
 
