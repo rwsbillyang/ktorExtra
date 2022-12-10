@@ -20,6 +20,8 @@ package com.github.rwsbillyang.ktorKit.db
 
 import com.github.rwsbillyang.ktorKit.cache.CacheService
 import com.github.rwsbillyang.ktorKit.cache.ICache
+import org.koin.core.component.inject
+import org.koin.core.qualifier.named
 import org.komapper.core.dsl.QueryDsl
 import org.komapper.core.dsl.expression.AssignmentDeclaration
 import org.komapper.core.dsl.expression.SortExpression
@@ -61,8 +63,10 @@ class SqlPagination(
  *        }
  * </code>
  * */
-abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
-    protected abstract val db: JdbcDatabase
+open class SqlGenericService(dbName: String, cache: ICache) : CacheService(cache) {
+    val dbSource: SqlDataSource by inject(qualifier = named(dbName))
+    val db: JdbcDatabase
+        get() = dbSource.db
     /**
      * find a record，evict cache if cacheKey or cacheKeys is not null
      * @param meta Meta，refer to Komapper @KomapperEntity
@@ -73,9 +77,9 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
      * */
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> findOne(
         meta: META,
+        w: WhereDeclaration,
         cacheKey: String? = null,
         database: JdbcDatabase = db,
-        w: WhereDeclaration
     ) =
         database.runQuery {
             QueryDsl.from(meta).where(w).singleOrNull()
@@ -89,8 +93,8 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
      * */
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> findAll(
         meta: META,
-        database: JdbcDatabase = db,
-        w: WhereDeclaration
+        w: WhereDeclaration,
+        database: JdbcDatabase = db
     ) =
         database.runQuery {
             QueryDsl.from(meta).where(w)
@@ -117,7 +121,7 @@ abstract class SqlGenericService(cache: ICache) : CacheService(cache) {
      * @param database if null, use overridden db in subclass
      * @return the inserted/updated record
      * */
-    fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> save(
+    inline fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> save(
         meta: META,
         e: ENTITY,
         isInsert: Boolean,
