@@ -213,13 +213,13 @@ fun Application.defaultInstall(
     if(blockFunc != null) blockFunc(this)
 
     _MyRoutings.add {
-        get("/") {
+        get("/ok") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
         }
         //convenience for test api
-        get("/api/hello") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
+//        get("/api/hello") {
+//            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+//        }
     }
     _MyRoutings.add {
         exceptionPage(application)
@@ -251,7 +251,7 @@ fun Application.testModule(module: AppModule) {
 @kotlin.jvm.JvmOverloads
 fun Application.simpleTestableModule() {
     routing {
-        get("/") {
+        get("/ok") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
         }
     }

@@ -121,7 +121,7 @@ open class SqlGenericService(dbName: String, cache: ICache) : CacheService(cache
      * @param database if null, use overridden db in subclass
      * @return the inserted/updated record
      * */
-    inline fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> save(
+    fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> save(
         meta: META,
         e: ENTITY,
         isInsert: Boolean,

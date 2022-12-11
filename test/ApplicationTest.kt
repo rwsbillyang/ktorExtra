@@ -28,7 +28,7 @@ class ApplicationTest {
         application {
             simpleTestableModule()
         }
-        val response = client.get("/")
+        val response = client.get("/ok")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("OK", response.bodyAsText())
     }
@@ -44,7 +44,7 @@ class ApplicationTest {
                 json(ApiJson.serverSerializeJson)
             }
             routing {
-                get("/") {
+                get("/ok") {
                     call.respond(box1)
                 }
             }
@@ -57,7 +57,7 @@ class ApplicationTest {
         }
 
 
-        val box2 = client.get("/").body<Box>()
+        val box2 = client.get("/ok").body<Box>()
         assertEquals(box1.id, box2.id)
         assertEquals(box1.msg, box2.msg)
     }
@@ -96,7 +96,7 @@ class ApplicationTest {
                 json(ApiJson.clientApiJson)
             }
             routing {
-                get("/") {
+                get("/ok") {
                     call.respond(box)
                 }
             }
@@ -106,7 +106,7 @@ class ApplicationTest {
                 json(ApiJson.clientApiJson)
             }
         }
-        val response = client.get("/")
+        val response = client.get("/ok")
         assertEquals(HttpStatusCode.OK, response.status)
 
         val boxRes:DataBox<String> = response.body()

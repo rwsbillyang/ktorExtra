@@ -27,7 +27,7 @@ import org.koin.core.qualifier.named
 open class MongoCRUDService(cache: ICache, dbName: String) : MongoGenericService(cache) {
     val dbSource: MongoDataSource by inject(qualifier = named(dbName))
 
-    inline fun <reified T: Any> col(colName: String) = dbSource.mongoDb.getCollection<T>(colName)
+    inline fun <reified T : Any> col(colName: String) = dbSource.mongoDb.getCollection<T>(colName)
 
     /**
      * find a document，use cache if cacheKey is not null
@@ -36,13 +36,13 @@ open class MongoCRUDService(cache: ICache, dbName: String) : MongoGenericService
      * @param cacheKey cache key，cache it if not null
      * @return the inserted/updated record
      * */
-    inline fun <T: Any> findOne(colName: String, id: String, toObejectId: Boolean = true, cacheKey: String? = null)
+    inline fun <reified T> findOne(colName: String, id: String, toObejectId: Boolean = true, cacheKey: String? = null): T?
     = findOne(col(colName),id, toObejectId, cacheKey)
 
 
-    inline fun <T: Any> findAll(colName: String, filter: Bson) = findAll(col(colName),filter)
+    inline fun <reified T> findAll(colName: String, filter: Bson): List<T>  = findAll(col(colName),filter)
 
-    inline fun <T: Any> findPage(colName: String, params: IUmiPaginationParams) = findPage(col(colName), params)
+    inline fun <reified T> findPage(colName: String, params: IUmiPaginationParams): List<T> = findPage(col(colName), params)
 
 
     /**
@@ -53,7 +53,7 @@ open class MongoCRUDService(cache: ICache, dbName: String) : MongoGenericService
      * @param updateCache if true, update cache, else evict cache，default false
      * @return the inserted/updated record
      * */
-    inline fun <reified T: Any> save(colName: String, doc: T, cacheKey: String? = null, updateCache: Boolean = false)
+    inline fun <reified T : Any> save(colName: String, doc: T, cacheKey: String? = null, updateCache: Boolean = false): T
     = save(col(colName), doc, cacheKey, updateCache)
 
 
@@ -67,7 +67,7 @@ open class MongoCRUDService(cache: ICache, dbName: String) : MongoGenericService
      * @param w WhereDeclaration
      * @return affected rows count
      * */
-    inline fun <T: Any> updateValues(colName: String, filter: Bson, update: Bson, cacheKey: String? = null,
+    inline fun <reified T: Any> updateValues(colName: String, filter: Bson, update: Bson, cacheKey: String? = null,
                               cacheKeys: List<String>? = null,) = updateValues(col(colName),filter,update, cacheKey,cacheKeys)
 
 
@@ -78,7 +78,7 @@ open class MongoCRUDService(cache: ICache, dbName: String) : MongoGenericService
      * @param cacheKey cache key，evict if not null
      * @return affected rows count
      * */
-    inline fun <T: Any> deleteOne(
+    inline fun <reified T> deleteOne(
         colName: String,
         id: String, toObejectId: Boolean = true,
         cacheKey: String? = null,
@@ -92,7 +92,7 @@ open class MongoCRUDService(cache: ICache, dbName: String) : MongoGenericService
      * @param cacheKeyPrefix cache key prefix，evict if not null, cacheKey: "cacheKeyPrefix/id"
      * @return affected rows count
      * */
-    inline fun <T: Any> deleteMulti(
+    inline fun <reified T> deleteMulti(
         colName: String,
         ids: List<String>, toObejectId: Boolean = true,
         cacheKeyPrefix: String? = null,

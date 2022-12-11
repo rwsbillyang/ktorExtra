@@ -37,17 +37,17 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * @param cacheKey cache key，cache it if not null
      * @return the inserted/updated record
      * */
-    inline fun <T: Any> findOne(col: CoroutineCollection<T>, id: String, toObejectId: Boolean = true, cacheKey: String? = null) = runBlocking{
+    inline fun <reified T: Any> findOne(col: CoroutineCollection<T>, id: String, toObejectId: Boolean = true, cacheKey: String? = null) = runBlocking{
         val _id = if(toObejectId) id.toObjectId() else id
         col.findOneById(_id)?.also { if (cacheKey != null) cache.put(cacheKey, it) }
     }
 
 
-    inline fun <T: Any> findAll(col: CoroutineCollection<T>, filter: Bson) = runBlocking{
+    inline fun <reified T: Any> findAll(col: CoroutineCollection<T>, filter: Bson) = runBlocking{
         col.find(filter).toList()
     }
 
-    inline fun <T: Any> findPage(col: CoroutineCollection<T>, params: IUmiPaginationParams) = runBlocking{
+    inline fun <reified T: Any> findPage(col: CoroutineCollection<T>, params: IUmiPaginationParams) = runBlocking{
         val pagination = params.pagination
         val sort = pagination.sortJson.bson
         val filter = params.toFilter()
@@ -68,7 +68,7 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * @param updateCache if true, update cache, else evict cache，default false
      * @return the inserted/updated record
      * */
-    inline fun <T: Any> save(col: CoroutineCollection<T>, doc: T, cacheKey: String? = null, updateCache: Boolean = false) = runBlocking{
+    inline fun <reified T: Any> save(col: CoroutineCollection<T>, doc: T, cacheKey: String? = null, updateCache: Boolean = false) = runBlocking{
         col.save(doc)
         if (cacheKey != null){
             if (updateCache) cache.put(cacheKey, doc) else cache.evict(cacheKey)
@@ -87,7 +87,7 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * @param w WhereDeclaration
      * @return affected rows count
      * */
-    inline fun <T: Any> updateValues(col: CoroutineCollection<T>, filter: Bson, update: Bson, cacheKey: String? = null,
+    inline fun <reified T: Any> updateValues(col: CoroutineCollection<T>, filter: Bson, update: Bson, cacheKey: String? = null,
                               cacheKeys: List<String>? = null,) = runBlocking{
         val count = col.updateMany(filter, update).modifiedCount
         if (cacheKey != null) cache.evict(cacheKey) else if (!cacheKeys.isNullOrEmpty()) cacheKeys.forEach {
@@ -104,7 +104,7 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * @param cacheKey cache key，evict if not null
      * @return affected rows count
      * */
-    inline fun <T: Any> deleteOne(
+    inline fun <reified T: Any> deleteOne(
         col: CoroutineCollection<T>,
         id: String, toObejectId: Boolean = true,
         cacheKey: String? = null,
@@ -123,7 +123,7 @@ open class MongoGenericService(cache: ICache) : CacheService(cache) {
      * @param cacheKeyPrefix cache key prefix，evict if not null, cacheKey: "cacheKeyPrefix/id"
      * @return affected rows count
      * */
-    inline fun <T: Any> deleteMulti(
+    inline fun <reified T: Any> deleteMulti(
         col: CoroutineCollection<T>,
         ids: List<String>, toObejectId: Boolean = true,
         cacheKeyPrefix: String? = null,
