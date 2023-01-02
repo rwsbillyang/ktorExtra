@@ -118,12 +118,11 @@ fun Application.installModule(
 @kotlin.jvm.JvmOverloads
 fun Application.defaultInstall(
     enableJwt: Boolean = true,
-    testing: Boolean = false,
+    enableJsonApi: Boolean = true,
     jsonBuilderAction: (JsonBuilder.() -> Unit)? = null,
     enableWebSocket: Boolean = false,
     logHeaders: List<String>? = null, //"X-Auth-uId","X-Auth-UserId", "X-Auth-ExternalUserId", "X-Auth-oId", "X-Auth-unId","X-Auth-CorpId","Authorization"
-    cache: ICache = CaffeineCache(),
-    blockFunc: ((app: Application)->Unit)?= null //用户自定义进行一些操作
+    cache: ICache = CaffeineCache()
 ) {
     val module = module {
         single<ICache> { cache }
@@ -151,24 +150,30 @@ fun Application.defaultInstall(
 
     install(CallLogging) {
         level = Level.INFO
-        filter { call -> call.request.path().startsWith("/") }
+        //filter { call -> call.request.path().startsWith("/") }
         if (!logHeaders.isNullOrEmpty()) {
             format { call ->
-                val request = call.request
-                "${request.httpMethod.value} ${request.path()} ${call.authHeaders(logHeaders)}"
+                "${call.request.httpMethod.value} ${call.request.path()} ${call.request.queryString()} ${call.authHeaders(logHeaders)} -> ${call.response.status()}"
+            }
+        }else{
+            format { call ->
+                "${call.request.httpMethod.value} ${call.request.path()} ${call.request.queryString()} -> ${call.response.status()}"
             }
         }
     }
 
 
-    //https://ktor.io/servers/features/content-negotiation/serialization-converter.html
-    //https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md
-    install(ContentNegotiation) {
-        json(
-            json = if (jsonBuilderAction == null) ApiJson.serverSerializeJson else Json(ApiJson.serverSerializeJson, jsonBuilderAction),
-            contentType = ContentType.Application.Json
-        )
+    if(enableJsonApi){
+        //https://ktor.io/servers/features/content-negotiation/serialization-converter.html
+        //https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md
+        install(ContentNegotiation) {
+            json(
+                json = if (jsonBuilderAction == null) ApiJson.serverSerializeJson else Json(ApiJson.serverSerializeJson, jsonBuilderAction),
+                contentType = ContentType.Application.Json
+            )
+        }
     }
+
 
 
     //install(Locations)
@@ -210,16 +215,10 @@ fun Application.defaultInstall(
 
     }
 
-    if(blockFunc != null) blockFunc(this)
-
     _MyRoutings.add {
         get("/ok") {
             call.respondText("OK", contentType = ContentType.Text.Plain)
         }
-        //convenience for test api
-//        get("/api/hello") {
-//            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-//        }
     }
     _MyRoutings.add {
         exceptionPage(application)
