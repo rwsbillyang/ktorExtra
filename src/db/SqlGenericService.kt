@@ -63,8 +63,8 @@ class SqlPagination(
  *        }
  * </code>
  * */
-open class SqlGenericService(dbName: String, cache: ICache) : CacheService(cache) {
-    val dbSource: SqlDataSource by inject(qualifier = named(dbName))
+abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
+    abstract val dbSource: SqlDataSource
     val db: JdbcDatabase
         get() = dbSource.db
     /**
@@ -213,5 +213,8 @@ open class SqlGenericService(dbName: String, cache: ICache) : CacheService(cache
             }
         }
 
+}
+open class SqlGenericService(dbName: String, cache: ICache) : AbstractSqlService(cache) {
+    override val dbSource: SqlDataSource by inject(qualifier = named(dbName))
 
 }
