@@ -11,6 +11,8 @@ import java.time.format.DateTimeParseException
 
 fun LocalDateTime.toUtc() = toInstant(ZoneOffset.UTC).toEpochMilli()
 fun Long.utcToLocalDateTime(zoneOffset: ZoneOffset = ZoneOffset.UTC): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(this),zoneOffset)
+fun Long.utcSecondsToLocalDateTime(zoneOffset: ZoneOffset = ZoneOffset.UTC): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(this),zoneOffset)
+
 fun Long.plusTime(years: Long = 0L, months: Long = 0L, days: Long = 0L) =
     utcToLocalDateTime().plusYears(years).plusMonths(months).plusDays(days).toUtc()
 
@@ -50,4 +52,5 @@ object DatetimeUtil {
     }
 
     fun format(time: Long, format: String = "yyyy-MM-dd HH:mm:ss", zoneOffset: ZoneOffset = ZoneOffset.ofHours(8)) = time.utcToLocalDateTime(zoneOffset).format(DateTimeFormatter.ofPattern(format))
+    fun format(dateTime: LocalDateTime, format: String = "yyyy-MM-dd HH:mm:ss") = dateTime.format(DateTimeFormatter.ofPattern(format))
 }

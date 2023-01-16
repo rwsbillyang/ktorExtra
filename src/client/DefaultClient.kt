@@ -40,6 +40,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
+//使用者可直接配置
+var clientLogConfigFunc: Logging.Config.() -> Unit = {
+    logger = Logger.DEFAULT
+    level = LogLevel.INFO
+}
 
 val DefaultClient: HttpClient by lazy {
     HttpClient(CIO) {
@@ -59,12 +64,8 @@ val DefaultClient: HttpClient by lazy {
             connectTimeoutMillis = 20000
         }
 
-        var logLevel = LogLevel.INFO //使用者可直接配置
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = logLevel
-        }
 
+        install(Logging, clientLogConfigFunc)
 
         //https://ktor.io/docs/http-client-engines.html#jvm-and-android
         engine {

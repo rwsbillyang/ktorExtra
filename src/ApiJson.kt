@@ -73,15 +73,11 @@ object ApiJson {
 
 
     /**
-     * 用于client侧的deserialize，具体如下：
-     * useArrayPolymorphism = false
-     * ignoreUnknownKeys = true
-     * isLenient = true
+     * 用于client侧的deserialize，等同于apiJsonBuilder
+     * client发送请求数据，接受结果数据的序列化
      * */
     val clientApiJson = Json {
-        useArrayPolymorphism = false
-        ignoreUnknownKeys = true
-        isLenient = true
+        apiJsonBuilder()
     }
 
 }
