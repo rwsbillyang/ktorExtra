@@ -26,13 +26,22 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 
 object ApiJson {
+    //sealed class的子类通过classDiscriminator判断是哪个子类， kotlinx.serialization默认使用type
+    //与正常的type字段冲突，kmongo/kbson 默认是___type，修改不生效。
+    // 但使用___type, 与spring不兼容，spring中序列化时默认添加_class字段
+    const val myClassDiscriminator = "_class"
+
     @OptIn(ExperimentalSerializationApi::class)
     fun JsonBuilder.apiJsonBuilder() {
         encodeDefaults = true
         explicitNulls = false
-
         ignoreUnknownKeys = true
-        classDiscriminator = "_class" //某些payload中拥有type字段，会冲突
+
+        //输出给前端和前端提交的类型，可以为任意字符串，与kmongo/kbson无关，
+        // 二者各使用各的classDiscriminator，都会转换成Java 对象实体
+        //前端 <---ApiJson.serverSerializeJson---> Java对象实体 <---kmongo/kbson---> MongoDB bson存储
+        // kmongo/kbson总是使用___type
+        classDiscriminator = myClassDiscriminator
         //isLenient = true
         allowSpecialFloatingPointValues = true
         useArrayPolymorphism = false

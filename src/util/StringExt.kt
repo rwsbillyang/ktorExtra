@@ -1,5 +1,6 @@
 package com.github.rwsbillyang.ktorKit.util
 
+import java.util.*
 import java.util.regex.Pattern
 
 
@@ -127,4 +128,25 @@ fun Long.toIPv4(): String {
     // 将高24位置0
     sb.append((this and 0x000000FF).toString())
     return sb.toString()
+}
+
+/**
+ * 驼峰法转下划线
+ */
+fun String.camel2Underline(): String {
+    if (isBlank()) {
+        return ""
+    }
+    if (length == 1) {
+        return lowercase(Locale.getDefault())
+    }
+    val sb = StringBuffer()
+    for (i in 1 until length) {
+        if (Character.isUpperCase(this[i])) {
+            sb.append("_" + this[i].lowercaseChar())
+        } else {
+            sb.append(this[i])
+        }
+    }
+    return (this[0].toString() + sb.toString()).lowercase(Locale.getDefault())
 }

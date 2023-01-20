@@ -153,11 +153,11 @@ fun Application.defaultInstall(
         //filter { call -> call.request.path().startsWith("/") }
         if (!logHeaders.isNullOrEmpty()) {
             format { call ->
-                "${call.request.httpMethod.value} ${call.request.path()} ${call.request.queryString()} ${call.authHeaders(logHeaders)} -> ${call.response.status()}"
+                "${call.request.httpMethod.value} ${call.request.uri}  ${call.authHeaders(logHeaders)} -> ${call.response.status()}"
             }
         }else{
             format { call ->
-                "${call.request.httpMethod.value} ${call.request.path()} ${call.request.queryString()} -> ${call.response.status()}"
+                "${call.request.httpMethod.value} ${call.request.uri}  -> ${call.response.status()}"
             }
         }
     }
