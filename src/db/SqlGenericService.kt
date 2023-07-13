@@ -33,7 +33,7 @@ import org.komapper.jdbc.JdbcDatabase
 
 class SqlPagination(
     val sort: SortExpression,
-    val pageSize: Int = 10,
+    val pageSize: Int = 10, // -1 表示全部
     val offset: Int = 0 //(pagination.current - 1) * pagination.pageSize
 ){
     var where: WhereDeclaration? = null
@@ -93,11 +93,14 @@ abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
      * */
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> findAll(
         meta: META,
-        w: WhereDeclaration,
+        w: WhereDeclaration ? = null,
         database: JdbcDatabase = db
     ) =
         database.runQuery {
-            QueryDsl.from(meta).where(w)
+            if(w == null)
+                QueryDsl.from(meta)
+            else
+                QueryDsl.from(meta).where(w)
         }
 
 
@@ -105,10 +108,16 @@ abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
         meta: META,
         pagination: SqlPagination,
         database: JdbcDatabase = db) = database.runQuery{
-        (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
-            .orderBy(pagination.sort)
-            .offset(pagination.offset)
-            .limit(pagination.pageSize)
+        if(pagination.pageSize == -1){//若pageSize为-1则表示某些条件下的全部数据
+            (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+                .orderBy(pagination.sort)
+        }else{
+            (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+                .orderBy(pagination.sort)
+                .offset(pagination.offset)
+                .limit(pagination.pageSize)
+        }
+
     }
 
     /**
