@@ -124,7 +124,7 @@ abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
      * save(insert or update depends on isInsert) a record，use cache if cacheKey is not null
      * @param meta Meta，refer to Komapper @KomapperEntity
      * @param e entity data
-     * @param isInsert insert if true, eg: id == null
+     * @param isInsert insert if true, eg: id == null, false for update
      * @param cacheKey cache key，evict if not null
      * @param  updateCache if true, update cache, else evict cache，default false
      * @param database if null, use overridden db in subclass

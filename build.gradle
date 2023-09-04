@@ -83,6 +83,7 @@ dependencies {
     compileOnly("io.ktor:ktor-server-content-negotiation:$ktor_version")
     compileOnly("io.ktor:ktor-server-call-id:$ktor_version")
     compileOnly("io.ktor:ktor-server-resources:$ktor_version")
+    compileOnly("io.ktor:ktor-server-cors:$ktor_version")
 
     compileOnly "io.ktor:ktor-client-core-jvm:$ktor_version"
     compileOnly "io.ktor:ktor-client-cio-jvm:$ktor_version"

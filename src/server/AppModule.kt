@@ -35,6 +35,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.request.*
@@ -84,7 +85,6 @@ private val _MyRoutings = mutableListOf<Routing.() -> Unit>()
  * @param dbName 数据库名称，不指定则使用AppModule中的默认名称
  * @param host 数据库host 默认127.0.0.1
  * @param port 数据库port 对于NOSQL MongoDB，默认27017， SQL之MySQL为3306
-
  * */
 fun Application.installModule(
     app: AppModule,
@@ -233,6 +233,60 @@ fun Application.defaultInstall(
     _MyRoutings.clear()
 }
 
+
+/**
+ * @param backOfNginx true if ktor server is back of nginx
+ * @param allowHosts anyHost if isNullOrEmpty, else allow specified hosts
+ * https://ktor.io/docs/cors.html#add_dependencies
+ * */
+fun Application.installCORS(backOfNginx: Boolean) {
+    if(backOfNginx){
+        install(CORS){
+            anyHost()
+            allowMethod(HttpMethod.Options)
+
+            allowHeader(HttpHeaders.ContentType)
+            allowHeader(HttpHeaders.Authorization)
+
+            allowNonSimpleContentTypes = true
+            allowHeadersPrefixed("X-")
+            allowCredentials = true
+            maxAgeInSeconds = 3600
+        }
+    }else{
+        install(CORS){
+            anyHost()
+
+            allowMethod(HttpMethod.Options)
+            allowMethod(HttpMethod.Put)
+            allowMethod(HttpMethod.Patch)
+            allowMethod(HttpMethod.Delete)
+
+            allowHeader(HttpHeaders.ContentType)
+            allowHeader(HttpHeaders.Authorization)
+            allowHeader(HttpHeaders.Accept)
+            allowHeader(HttpHeaders.AcceptLanguage)
+            allowHeader(HttpHeaders.AcceptEncoding)
+            allowHeader(HttpHeaders.AcceptCharset)
+            allowHeader(HttpHeaders.Connection)
+
+            allowNonSimpleContentTypes = true
+            allowHeadersPrefixed("X-")
+            allowHeadersPrefixed("Access-Control")
+            allowHeadersPrefixed("Sec-Fetch")
+
+            allowCredentials = true
+            maxAgeInSeconds = 3600
+
+
+//            exposeHeader("Access-Control-Allow-Origin *")
+//            exposeHeader("Access-Control-Allow-Methods GET,POST,OPTIONS,PUT,DELETE")
+//            exposeHeader("Access-Control-Allow-Credentials true")
+//            exposeHeader("Access-Control-Allow-Headers DNT,accessToken,uuid,Authorization,Accept,Accept-Language,Content-Language,Last-Event-ID,Origin,Keep-Alive,User-Agent,X-Mx-ReqToken,X-Data-Type,X-Auth-Token,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range")
+
+        }
+    }
+}
 
 fun Application.testModule(module: AppModule) {
     val app = this

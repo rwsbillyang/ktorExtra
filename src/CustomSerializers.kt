@@ -90,6 +90,7 @@ object LocalDateTimeAsStringSerializer : KSerializer<LocalDateTime> {
     }
 }
 
+@Serializer(forClass = LocalDateTime::class)
 object LocalDateTimeAsLongSerializer : KSerializer<LocalDateTime> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LocalDateTimeAsLongSerializer", PrimitiveKind.LONG)
     override fun serialize(encoder: Encoder, value: LocalDateTime) = encoder.encodeLong(value.toUtc())
