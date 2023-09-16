@@ -28,6 +28,7 @@ import org.komapper.core.dsl.expression.SortExpression
 import org.komapper.core.dsl.expression.WhereDeclaration
 import org.komapper.core.dsl.metamodel.EntityMetamodel
 import org.komapper.core.dsl.operator.and
+import org.komapper.core.dsl.operator.or
 import org.komapper.core.dsl.query.singleOrNull
 import org.komapper.jdbc.JdbcDatabase
 
@@ -47,6 +48,22 @@ class SqlPagination(
     }
 }
 
+fun andWhere(vararg arrays: WhereDeclaration?): WhereDeclaration?{
+    var where: WhereDeclaration? = null
+    val list = arrays.filterNotNull()
+    if(list.isNotEmpty()){
+        where = list.reduce{e1, e2 -> e1.and(e2)}
+    }
+    return where
+}
+fun orWhere(vararg arrays: WhereDeclaration?): WhereDeclaration?{
+    var where: WhereDeclaration? = null
+    val list = arrays.filterNotNull()
+    if(list.isNotEmpty()){
+        where = list.reduce{e1, e2 -> e1.or(e2)}
+    }
+    return where
+}
 /**
  * basic CRUD service based on Komapper（https://github.com/komapper/komapper）
  *
