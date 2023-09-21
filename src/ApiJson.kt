@@ -45,7 +45,6 @@ object ApiJson {
         //isLenient = true
         allowSpecialFloatingPointValues = true
         useArrayPolymorphism = false
-
     }
 
     /**

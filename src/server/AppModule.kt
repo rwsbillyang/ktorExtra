@@ -110,9 +110,11 @@ fun Application.installModule(
 
 /**
  * @param enableJwt 为false时只适合于route中无authentication时的情况
+ * @param enableJsonApi 是否打开api接口json序列化
  * @param jsonBuilderAction 添加额外的自定义json配置，通常用于添加自己的json contextual
- *
- * 自动注入 CaffeineCache，
+ * @param enableWebSocket 是否开启websocket
+ * @param logHeaders 需要输出哪些请求头，用于调试
+ * @param cache 自动注入 CaffeineCache，如不需要可使用VoidCache代替
  * */
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
@@ -236,8 +238,6 @@ fun Application.defaultInstall(
 
 /**
  * @param backOfNginx true if ktor server is back of nginx
- * @param allowHosts anyHost if isNullOrEmpty, else allow specified hosts
- * https://ktor.io/docs/cors.html#add_dependencies
  * */
 fun Application.installCORS(backOfNginx: Boolean) {
     if(backOfNginx){

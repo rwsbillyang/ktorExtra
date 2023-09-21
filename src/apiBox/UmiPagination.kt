@@ -46,13 +46,13 @@ interface IUmiPaginationParams{
     fun toFilter(): Bson{
         TODO("Not Implement")
     }
+
     /**
      * convert search params to SqlPagination for mysql/komapper
      * */
     fun toSqlPagination(): SqlPagination{
         TODO("Not Implement")
     }
-
 }
 
 /**
