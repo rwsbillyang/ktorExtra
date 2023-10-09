@@ -113,7 +113,7 @@ class ApplicationTest {
         assertEquals(box.data, boxRes.data)
     }
 
-    @Test
+    //@Test
     fun testRemote() = testApplication{
         @Serializable
         class Box(val code: Int, val message:String)

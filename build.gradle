@@ -132,6 +132,7 @@ dependencies {
     compileOnly "com.zaxxer:HikariCP:$HikariCPVersion"
     compileOnly("org.komapper:komapper-starter-jdbc:$komapperVersion")
     compileOnly("org.komapper:komapper-dialect-mysql-jdbc:$komapperVersion")
+    compileOnly("org.komapper:komapper-template:$komapperVersion")
 
     // https://mvnrepository.com/artifact/org.apache.shardingsphere/sharding-jdbc-core
     //compileOnly group: 'org.apache.shardingsphere', name: 'sharding-jdbc-core', version: '5.1.2'

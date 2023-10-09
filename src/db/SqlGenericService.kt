@@ -29,11 +29,13 @@ import org.komapper.core.dsl.expression.WhereDeclaration
 import org.komapper.core.dsl.metamodel.EntityMetamodel
 import org.komapper.core.dsl.operator.and
 import org.komapper.core.dsl.operator.or
+import org.komapper.core.dsl.query.Query
+import org.komapper.core.dsl.query.Row
 import org.komapper.core.dsl.query.singleOrNull
 import org.komapper.jdbc.JdbcDatabase
 
 class SqlPagination(
-    val sort: SortExpression,
+    val sort: SortExpression?, //可为空，inList查询时保持原顺序
     val pageSize: Int = 10, // -1 表示全部
     val offset: Int = 0 //(pagination.current - 1) * pagination.pageSize
 ){
@@ -126,13 +128,24 @@ abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
         pagination: SqlPagination,
         database: JdbcDatabase = db) = database.runQuery{
         if(pagination.pageSize == -1){//若pageSize为-1则表示某些条件下的全部数据
-            (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
-                .orderBy(pagination.sort)
+            if(pagination.sort == null){
+                (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+            }else{
+                (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+                    .orderBy(pagination.sort)
+            }
         }else{
-            (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
-                .orderBy(pagination.sort)
-                .offset(pagination.offset)
-                .limit(pagination.pageSize)
+            if(pagination.sort == null){
+                (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+                    .offset(pagination.offset)
+                    .limit(pagination.pageSize)
+            }else{
+                (pagination.where?.let { QueryDsl.from(meta).where(it) }?:QueryDsl.from(meta))
+                    .orderBy(pagination.sort)
+                    .offset(pagination.offset)
+                    .limit(pagination.pageSize)
+            }
+
         }
 
     }
@@ -239,6 +252,22 @@ abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
             }
         }
 
+    /**
+     * workaround for https://github.com/komapper/komapper/issues/1094
+     *  caller should check SQL injection
+     * select * from t_constant where id in (4,5,6,22,7)  ORDER BY INSTR(',4,5,6,22,7,',CONCAT(',',id,','));
+     * */
+    fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> findInList(
+        meta: META,
+        ids: String,
+        idField: String = "id",
+        database: JdbcDatabase = db,
+        row2ENTITY: (row: Row) -> ENTITY
+    ) = database.runQuery {
+        val sql = "select * from ${meta.tableName()} where $idField in ($ids) ORDER BY INSTR(',$ids,',CONCAT(',', $idField, ','))"
+        val query: Query<List<ENTITY>> =  QueryDsl.fromTemplate(sql).select { row2ENTITY(it) } //QueryDsl.executeTemplate(sql)
+        query
+    }
 }
 open class SqlGenericService(dbName: String, cache: ICache) : AbstractSqlService(cache) {
     override val dbSource: SqlDataSource by inject(qualifier = named(dbName))
