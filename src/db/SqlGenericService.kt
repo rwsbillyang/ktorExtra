@@ -113,13 +113,21 @@ abstract class AbstractSqlService(cache: ICache) : CacheService(cache) {
     fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> findAll(
         meta: META,
         w: WhereDeclaration ? = null,
+        sort: SortExpression? = null,
         database: JdbcDatabase = db
     ) =
         database.runQuery {
-            if(w == null)
-                QueryDsl.from(meta)
-            else
-                QueryDsl.from(meta).where(w)
+            if(w == null) {
+                if (sort == null)
+                    QueryDsl.from(meta)
+                else
+                    QueryDsl.from(meta).orderBy(sort)
+            }else {
+                if (sort == null)
+                    QueryDsl.from(meta).where(w)
+                else
+                    QueryDsl.from(meta).where(w).orderBy(sort)
+            }
         }
 
 
