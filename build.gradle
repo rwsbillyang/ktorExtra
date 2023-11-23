@@ -88,7 +88,7 @@ dependencies {
     compileOnly "io.ktor:ktor-client-core-jvm:$ktor_version"
     compileOnly "io.ktor:ktor-client-cio-jvm:$ktor_version"
     compileOnly "io.ktor:ktor-client-content-negotiation:$ktor_version"
-    compileOnly "io.ktor:ktor-serialization-kotlinx-xml:$ktor_version"
+    compileOnly "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
     compileOnly("io.ktor:ktor-client-logging-jvm:$ktor_version")
     compileOnly "io.ktor:ktor-client-encoding:$ktor_version"
 

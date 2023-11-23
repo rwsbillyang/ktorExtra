@@ -88,7 +88,7 @@ class SqlLiteHelper(private val sqliteDbPath: String)
      * @param where eg:  capacity > ?
      * @param pstmtSetWhere eg: pstmt.setDouble(1,capacity);
      * @return ResultSet
-    while (resultSet.next()) {
+    while (rs.next()) {
     println(
     rs.getInt("id").toString() + "\t" +
     rs.getString("name") + "\t" +
@@ -96,19 +96,16 @@ class SqlLiteHelper(private val sqliteDbPath: String)
     )
     }
      * */
-    fun find(tableName: String, where: String, pstmtSetWhere: (pstmt: PreparedStatement) -> Unit): ResultSet?{
-        val sql = ("SELECT * FROM $tableName WHERE $where")
-        try {
-            connection.prepareStatement(sql).use { pstmt ->
-                pstmtSetWhere(pstmt)
-                val resultSet: ResultSet = pstmt.executeQuery()
-                return resultSet
-            }
-        } catch (e: SQLException) {
-            println(e.message)
+    fun findBuggy(tableName: String, whereExpr: String, pstmtSetWhere: (pstmt: PreparedStatement) -> Unit): ResultSet{
+        val sql ="SELECT * FROM $tableName WHERE $whereExpr"
+        connection.prepareStatement(sql).use { pstmt ->
+            pstmtSetWhere(pstmt)
+            return pstmt.executeQuery()
         }
-        return null
     }
+    fun find(tableName: String, wherePart: String) = connection.createStatement().executeQuery("SELECT * FROM $tableName $wherePart")
+    fun findAll(tableName: String) = connection.createStatement().executeQuery("SELECT * FROM $tableName")
+    fun find(sql: String) = connection.createStatement().executeQuery(sql)
 
     /**
      * @param tableName
