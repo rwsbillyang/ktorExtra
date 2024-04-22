@@ -170,7 +170,7 @@ fun Application.defaultInstall(
         //https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/custom_serializers.md
         install(ContentNegotiation) {
             json(
-                json = if (jsonBuilderAction == null) ApiJson.serverSerializeJson else Json(ApiJson.serverSerializeJson, jsonBuilderAction),
+                json = if (jsonBuilderAction == null) ApiJson.serverSerializeJson() else Json(ApiJson.serverSerializeJson(), jsonBuilderAction),
                 contentType = ContentType.Application.Json
             )
         }
@@ -222,9 +222,9 @@ fun Application.defaultInstall(
             call.respondText("OK", contentType = ContentType.Text.Plain)
         }
     }
-    _MyRoutings.add {
-        exceptionPage(application)
-    }
+//    _MyRoutings.add {
+//        exceptionPage(application)
+//    }
     log.info("_MyRoutings.size=${_MyRoutings.size}")
 
     _MyRoutings.forEach {

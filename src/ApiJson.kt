@@ -31,6 +31,15 @@ object ApiJson {
     // 但使用___type, 与spring不兼容，spring中序列化时默认添加_class字段
     const val myClassDiscriminator = "_class"
 
+    /**
+     * 忽略null值，忽略未知键等，具体如下：
+     * encodeDefaults = true
+     * explicitNulls = false
+     * ignoreUnknownKeys = true
+     * classDiscriminator = "_class" //某些payload中拥有type字段，会冲突
+     * allowSpecialFloatingPointValues = true
+     * useArrayPolymorphism = false
+     * */
     @OptIn(ExperimentalSerializationApi::class)
     fun JsonBuilder.apiJsonBuilder() {
         encodeDefaults = true
@@ -47,24 +56,12 @@ object ApiJson {
         useArrayPolymorphism = false
     }
 
-    /**
-     * server侧的serialize，不包含ObjectId和LocalDateTime的自定义序列化
-     * 忽略null值，忽略未知键等，具体如下：
-     * encodeDefaults = true
-     * explicitNulls = false
-     * ignoreUnknownKeys = true
-     * classDiscriminator = "_class" //某些payload中拥有type字段，会冲突
-     * allowSpecialFloatingPointValues = true
-     * useArrayPolymorphism = false
-     * */
-    val serializeJson = Json {
-        apiJsonBuilder()
-    }
+    fun json() = Json { apiJsonBuilder() }
 
     /**
      * server侧的serialize，包含了ObjectId和LocalDateTime的自定义序列化
      * */
-    val serverSerializeJson = Json {
+    fun serverSerializeJson() = Json {
         apiJsonBuilder()
         serializersModule = SerializersModule {
             try{
@@ -77,15 +74,6 @@ object ApiJson {
             //contextual(LocalDateTimeAsStringSerializer)
             contextual(LocalDateTimeAsLongSerializer)
         }
-    }
-
-
-    /**
-     * 用于client侧的deserialize，等同于apiJsonBuilder
-     * client发送请求数据，接受结果数据的序列化
-     * */
-    val clientApiJson = Json {
-        apiJsonBuilder()
     }
 
 }

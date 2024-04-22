@@ -2,6 +2,7 @@ package com.github.rwsbillyang.ktorKit.test
 
 
 import com.github.rwsbillyang.ktorKit.ApiJson
+import com.github.rwsbillyang.ktorKit.ApiJson.apiJsonBuilder
 import com.github.rwsbillyang.ktorKit.apiBox.DataBox
 import com.github.rwsbillyang.ktorKit.client.DefaultClient
 import com.github.rwsbillyang.ktorKit.server.respondBox
@@ -41,7 +42,7 @@ class ApplicationTest {
 
         application {
             install(io.ktor.server.plugins.contentnegotiation.ContentNegotiation) {
-                json(ApiJson.serverSerializeJson)
+                json(ApiJson.serverSerializeJson())
             }
             routing {
                 get("/ok") {
@@ -52,7 +53,7 @@ class ApplicationTest {
         val client = createClient {
             //this@testApplication.
             install(ContentNegotiation) {
-                json(ApiJson.clientApiJson)
+                json(ApiJson.json())
             }
         }
 
@@ -67,7 +68,7 @@ class ApplicationTest {
         val box = DataBox.ok("OK")
         application {
             install(io.ktor.server.plugins.contentnegotiation.ContentNegotiation) {
-                json(ApiJson.serverSerializeJson)
+                json(ApiJson.serverSerializeJson())
             }
             routing {
                 get("/databox") {
@@ -77,7 +78,7 @@ class ApplicationTest {
         }
         val client = createClient {
             install(ContentNegotiation) {
-                json(ApiJson.clientApiJson)
+                json(ApiJson.json())
             }
         }
 
@@ -93,7 +94,7 @@ class ApplicationTest {
         val box = DataBox.ok("OK")
         application {
             install(io.ktor.server.plugins.contentnegotiation.ContentNegotiation) {
-                json(ApiJson.clientApiJson)
+                json(ApiJson.json())
             }
             routing {
                 get("/ok") {
@@ -103,7 +104,7 @@ class ApplicationTest {
         }
         val client = createClient {
             install(ContentNegotiation) {
-                json(ApiJson.clientApiJson)
+                json(ApiJson.json())
             }
         }
         val response = client.get("/ok")

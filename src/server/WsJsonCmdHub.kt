@@ -98,12 +98,13 @@ class WsJsonCmdHub : KoinComponent {
         for (frame in session.incoming) {
             when (frame) {
                 is Frame.Text -> {
-                    val request = ApiJson.serverSerializeJson.decodeFromString<SocketRequest>(frame.readText())
+                    val json = ApiJson.serverSerializeJson()
+                    val request = json.decodeFromString<SocketRequest>(frame.readText())
                     when(request.cmd)
                     {
                         SocketRequest.CMD_CONNECT -> {
                             val id = sessions.addSession(session)
-                            session.send(ApiJson.serverSerializeJson.encodeToString(SocketResponse(id, SocketRequest.CMD_CONNECT, SocketResponse.MSG_READY)))
+                            session.send(json.encodeToString(SocketResponse(id, SocketRequest.CMD_CONNECT, SocketResponse.MSG_READY)))
                         }
                         SocketRequest.CMD_CLOSE -> {
                            sessions.removeSession(request.id)
@@ -118,15 +119,16 @@ class WsJsonCmdHub : KoinComponent {
 
     suspend fun handleJsonCmd(request: SocketRequest, session: DefaultWebSocketSession){
         var flag = false
+        val json = ApiJson.serverSerializeJson()
         for(handler in handlers){
             val response = handler.onCmdRequest(request)
             if(response != null){
                 flag = true
-                session.send(ApiJson.serverSerializeJson.encodeToString(response))
+                session.send(json.encodeToString(response))
                 break
             }
         }
         if(!flag)
-            session.send(ApiJson.serverSerializeJson.encodeToString(SocketResponse(request.id, request.cmd,SocketResponse.MSG_NO_HANDLER)))
+            session.send(json.encodeToString(SocketResponse(request.id, request.cmd,SocketResponse.MSG_NO_HANDLER)))
     }
 }

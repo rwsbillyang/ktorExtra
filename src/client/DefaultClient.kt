@@ -20,6 +20,7 @@ package com.github.rwsbillyang.ktorKit.client
 
 
 import com.github.rwsbillyang.ktorKit.ApiJson
+import com.github.rwsbillyang.ktorKit.ApiJson.apiJsonBuilder
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -39,6 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 //使用者可直接配置
 var clientLogConfigFunc: Logging.Config.() -> Unit = {
@@ -49,8 +51,9 @@ var clientLogConfigFunc: Logging.Config.() -> Unit = {
 val DefaultClient: HttpClient by lazy {
     HttpClient(CIO) {
         install(ContentNegotiation) {
-            json(ApiJson.clientApiJson, ContentType.Application.Json)
-            json(ApiJson.clientApiJson, ContentType.Text.Plain) //fix NoTransformationFoundException when response is  Content-Type: text/plain
+            val json = Json { apiJsonBuilder()}
+            json(json, ContentType.Application.Json)
+            json(json, ContentType.Text.Plain) //fix NoTransformationFoundException when response is  Content-Type: text/plain
         }
         defaultRequest { // this: HttpRequestBuilder ->
             contentType(ContentType.Application.Json)

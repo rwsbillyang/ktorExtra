@@ -95,12 +95,12 @@ fun Routing.exceptionPage(application: Application)
 
 
 suspend inline fun <reified T> ApplicationCall.respondBox(box: DataBox<T>) =
-    respondText(ApiJson.serverSerializeJson.encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)
+    respondText(ApiJson.serverSerializeJson().encodeToString(box), ContentType.Application.Json, HttpStatusCode.OK)
 suspend inline fun <reified T> ApplicationCall.respondBoxOK(data: T) =
-    respondText(ApiJson.serverSerializeJson.encodeToString(DataBox.ok(data)), ContentType.Application.Json, HttpStatusCode.OK)
+    respondText(ApiJson.serverSerializeJson().encodeToString(DataBox.ok(data)), ContentType.Application.Json, HttpStatusCode.OK)
 
 suspend inline fun ApplicationCall.respondBoxKO(msg: String) =
-    respondText(ApiJson.serverSerializeJson.encodeToString(DataBox.ko<Unit>(msg)), ContentType.Application.Json, HttpStatusCode.OK)
+    respondText(ApiJson.serverSerializeJson().encodeToString(DataBox.ko<Unit>(msg)), ContentType.Application.Json, HttpStatusCode.OK)
 
 suspend inline fun ApplicationCall.respondBoxJsonText(json: String) =
     respondText(json, ContentType.Application.Json, HttpStatusCode.OK)
